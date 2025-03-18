@@ -1,0 +1,19 @@
+/* eslint-disable prettier/prettier */
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User, UserDocument } from '../schemas/user.schema';
+
+@Injectable()
+export class UserService {
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+
+  async createUser(username: string, accountname: string, password: string, phone: string): Promise<User> {
+    const newUser = new this.userModel({ username, accountname, password, phone });
+    return newUser.save();
+  }
+
+  async loginUser(accountname: string, password: string): Promise<User[]> {
+    return this.userModel.find({ accountname, password }).exec();
+  }
+}

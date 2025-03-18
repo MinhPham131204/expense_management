@@ -1,0 +1,32 @@
+/* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable prettier/prettier */
+import { Controller, Get, Query, DefaultValuePipe, ParseIntPipe, Post, Body, Req } from '@nestjs/common';
+import { Request } from 'express';
+import { TransactionService } from './transaction.service';
+
+@Controller('transaction')
+export class TransactionController {
+    constructor(private readonly transactionService: TransactionService) {}
+
+    @Get('allInMonth')
+    async getTransactionsInMonth(
+        @Req() request: Request,
+        @Query('month', new DefaultValuePipe(new Date().getMonth() + 1), ParseIntPipe) month: number,
+        @Query('year', new DefaultValuePipe(new Date().getFullYear()), ParseIntPipe) year: number,
+    ) {
+        return this.transactionService.getTransactionsInMonth(request.cookies['token'], month, year);
+    }
+
+    @Post('new')
+    async createTransaction(
+        @Req() request: Request,   
+        @Body('type') type: string,
+        @Body('categoryID') categoryID: string,
+        @Body('money') money: string,
+        @Body('description') description: string,
+    ) {
+        return this.transactionService.createTransaction(request.cookies['token'], type, categoryID, money, description);
+    }
+}
