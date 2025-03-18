@@ -16,8 +16,8 @@ export class TransactionService {
         return { income, expense, difference: income - expense, transactions: arr };
     }
 
-    async createTransaction(userID: string, type: string, categoryID: string, money: string, description: string): Promise<Transaction> {
-        const newTransaction = new this.transactionModel({ userID, type, categoryID, money, description, datetime: new Date() });
+    async createTransaction(userID: string, type: string, categoryID: string, money: string, description: string, datetime: string ): Promise<Transaction> {
+        const newTransaction = new this.transactionModel({ userID, type, categoryID, money, description, datetime });
         return newTransaction.save();
     }
 }

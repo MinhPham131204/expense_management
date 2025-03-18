@@ -12,11 +12,11 @@ export class UserController {
   async createUser(
     @Res({ passthrough: true }) response: Response,
     @Body('username') username: string,
-    @Body('accountname') accountname: string,
+    @Body('email') email: string,
     @Body('password') password: string,
     @Body('phone') phone: string,
   ) {
-    const acc = await this.userService.createUser(username, accountname, password, phone);
+    const acc = await this.userService.createUser(username, email, password, phone);
     response.cookie('token', acc[0]['_id'], { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 7 });
     return { message: 'Signup successful' };
   }
@@ -24,10 +24,10 @@ export class UserController {
   @Post('login')
   async loginUser(
     @Res({ passthrough: true }) response: Response,
-    @Body('accountname') accountname: string,
+    @Body('email') email: string,
     @Body('password') password: string,
   ) {
-    const acc = await this.userService.loginUser(accountname, password);
+    const acc = await this.userService.loginUser(email, password);
     if (acc.length) {
       response.cookie('token', acc[0]['_id'], { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 7 });
       return { message: 'Login successful' };

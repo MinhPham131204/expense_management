@@ -9,5 +9,5 @@ export declare class TransactionService {
         difference: number;
         transactions: Transaction[];
     }>;
-    createTransaction(userID: string, type: string, categoryID: string, money: string, description: string): Promise<Transaction>;
+    createTransaction(userID: string, type: string, categoryID: string, money: string, description: string, datetime: string): Promise<Transaction>;
 }

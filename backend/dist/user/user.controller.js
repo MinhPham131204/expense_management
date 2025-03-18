@@ -20,13 +20,13 @@ let UserController = class UserController {
     constructor(userService) {
         this.userService = userService;
     }
-    async createUser(response, username, accountname, password, phone) {
-        const acc = await this.userService.createUser(username, accountname, password, phone);
+    async createUser(response, username, email, password, phone) {
+        const acc = await this.userService.createUser(username, email, password, phone);
         response.cookie('token', acc[0]['_id'], { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 7 });
         return { message: 'Signup successful' };
     }
-    async loginUser(response, accountname, password) {
-        const acc = await this.userService.loginUser(accountname, password);
+    async loginUser(response, email, password) {
+        const acc = await this.userService.loginUser(email, password);
         if (acc.length) {
             response.cookie('token', acc[0]['_id'], { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 7 });
             return { message: 'Login successful' };
@@ -41,7 +41,7 @@ __decorate([
     (0, common_1.Post)('signup'),
     __param(0, (0, common_1.Res)({ passthrough: true })),
     __param(1, (0, common_1.Body)('username')),
-    __param(2, (0, common_1.Body)('accountname')),
+    __param(2, (0, common_1.Body)('email')),
     __param(3, (0, common_1.Body)('password')),
     __param(4, (0, common_1.Body)('phone')),
     __metadata("design:type", Function),
@@ -51,7 +51,7 @@ __decorate([
 __decorate([
     (0, common_1.Post)('login'),
     __param(0, (0, common_1.Res)({ passthrough: true })),
-    __param(1, (0, common_1.Body)('accountname')),
+    __param(1, (0, common_1.Body)('email')),
     __param(2, (0, common_1.Body)('password')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String, String]),

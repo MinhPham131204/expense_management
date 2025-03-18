@@ -19,14 +19,15 @@ export class TransactionController {
         return this.transactionService.getTransactionsInMonth(request.cookies['token'], month, year);
     }
 
-    @Post('new')
+    @Post()
     async createTransaction(
         @Req() request: Request,   
         @Body('type') type: string,
         @Body('categoryID') categoryID: string,
         @Body('money') money: string,
         @Body('description') description: string,
+        @Body('datetime') datetime: string,
     ) {
-        return this.transactionService.createTransaction(request.cookies['token'], type, categoryID, money, description);
+        return this.transactionService.createTransaction(request.cookies['token'], type, categoryID, money, description, datetime);
     }
 }

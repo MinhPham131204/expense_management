@@ -28,8 +28,8 @@ let TransactionService = class TransactionService {
         const expense = arr.reduce((acc, cur) => cur.type === 'Chi tiêu' ? acc + parseInt(cur.money) : acc, 0);
         return { income, expense, difference: income - expense, transactions: arr };
     }
-    async createTransaction(userID, type, categoryID, money, description) {
-        const newTransaction = new this.transactionModel({ userID, type, categoryID, money, description, datetime: new Date() });
+    async createTransaction(userID, type, categoryID, money, description, datetime) {
+        const newTransaction = new this.transactionModel({ userID, type, categoryID, money, description, datetime });
         return newTransaction.save();
     }
 };

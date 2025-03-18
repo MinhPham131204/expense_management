@@ -22,8 +22,8 @@ let UserService = class UserService {
     constructor(userModel) {
         this.userModel = userModel;
     }
-    async createUser(username, accountname, password, phone) {
-        const newUser = new this.userModel({ username, accountname, password, phone });
+    async createUser(username, email, password, phone) {
+        const newUser = new this.userModel({ username, email, password, phone });
         return newUser.save();
     }
     async loginUser(accountname, password) {

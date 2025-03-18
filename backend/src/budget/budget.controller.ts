@@ -9,7 +9,7 @@ import { BudgetService } from './budget.service';
 export class BudgetController {
     constructor(private readonly budgetService: BudgetService) {}
 
-    @Get('all')
+    @Get()
     getAllBudgets(
         @Req() request: Request,
     ) {

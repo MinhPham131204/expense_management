@@ -13,7 +13,7 @@ exports.UserSchema = exports.User = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 let User = class User {
     username;
-    accountname;
+    email;
     password;
     phone;
 };
@@ -25,7 +25,7 @@ __decorate([
 __decorate([
     (0, mongoose_1.Prop)({ required: true, unique: true }),
     __metadata("design:type", String)
-], User.prototype, "accountname", void 0);
+], User.prototype, "email", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)

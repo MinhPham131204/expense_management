@@ -38,7 +38,7 @@ let BudgetController = class BudgetController {
 };
 exports.BudgetController = BudgetController;
 __decorate([
-    (0, common_1.Get)('all'),
+    (0, common_1.Get)(),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
