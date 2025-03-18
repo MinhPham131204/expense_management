@@ -20,8 +20,10 @@ let UserController = class UserController {
     constructor(userService) {
         this.userService = userService;
     }
-    async createUser(username, accountname, password, phone) {
-        return this.userService.createUser(username, accountname, password, phone);
+    async createUser(response, username, accountname, password, phone) {
+        const acc = await this.userService.createUser(username, accountname, password, phone);
+        response.cookie('token', acc[0]['_id'], { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 7 });
+        return { message: 'Signup successful' };
     }
     async loginUser(response, accountname, password) {
         const acc = await this.userService.loginUser(accountname, password);
@@ -37,12 +39,13 @@ let UserController = class UserController {
 exports.UserController = UserController;
 __decorate([
     (0, common_1.Post)('signup'),
-    __param(0, (0, common_1.Body)('username')),
-    __param(1, (0, common_1.Body)('accountname')),
-    __param(2, (0, common_1.Body)('password')),
-    __param(3, (0, common_1.Body)('phone')),
+    __param(0, (0, common_1.Res)({ passthrough: true })),
+    __param(1, (0, common_1.Body)('username')),
+    __param(2, (0, common_1.Body)('accountname')),
+    __param(3, (0, common_1.Body)('password')),
+    __param(4, (0, common_1.Body)('phone')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String]),
+    __metadata("design:paramtypes", [Object, String, String, String, String]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "createUser", null);
 __decorate([
