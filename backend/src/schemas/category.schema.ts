@@ -6,7 +6,7 @@ export type CategoryDocument = mongoose.HydratedDocument<Category>;
 
 @Schema({ versionKey: false })
 export class Category {
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   name: string;
 
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Category' })

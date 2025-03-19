@@ -6,6 +6,7 @@ export declare class BudgetController {
     getAllBudgets(request: Request): Promise<import("../schemas/budget.schema").Budget[]>;
     getBudgetById(request: Request, params: any): Promise<{
         budget: import("../schemas/budget.schema").Budget;
+        remaining: number;
         transactions: import("../schemas/transaction.schema").Transaction[];
     }>;
     createBudget(request: Request, categoryID: string, budget: string): Promise<import("../schemas/budget.schema").Budget | {

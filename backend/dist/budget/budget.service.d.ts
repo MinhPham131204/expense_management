@@ -8,6 +8,7 @@ export declare class BudgetService {
     getBudget(userID: string): Promise<Budget[]>;
     getBudgetById(userID: any, id: string): Promise<{
         budget: Budget;
+        remaining: number;
         transactions: Transaction[];
     }>;
     createBudget(userID: string, categoryID: string, budget: string): Promise<Budget | {

@@ -22,8 +22,11 @@ exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            config_1.ConfigModule.forRoot(),
-            mongoose_1.MongooseModule.forRoot("mongodb+srv://pqminh131204:m1nhph4m@cluster0.1hamp.mongodb.net/expense_management_db?retryWrites=true&w=majority&appName=Cluster0"),
+            config_1.ConfigModule.forRoot({
+                envFilePath: '.env',
+                isGlobal: true,
+            }),
+            mongoose_1.MongooseModule.forRoot(process.env.MONGODB_URI),
             user_module_1.UserModule,
             transaction_module_1.TransactionModule,
             category_module_1.CategoryModule,

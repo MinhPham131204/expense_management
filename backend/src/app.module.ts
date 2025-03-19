@@ -1,7 +1,4 @@
 /* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -14,8 +11,11 @@ import { BudgetModule } from './budget/budget.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
-    MongooseModule.forRoot("mongodb+srv://pqminh131204:m1nhph4m@cluster0.1hamp.mongodb.net/expense_management_db?retryWrites=true&w=majority&appName=Cluster0"),
+    ConfigModule.forRoot({
+      envFilePath: '.env',
+      isGlobal: true,
+    }),
+    MongooseModule.forRoot(process.env.MONGODB_URI as string),
     UserModule,
     TransactionModule,
     CategoryModule,

@@ -35,7 +35,8 @@ let BudgetService = class BudgetService {
         const month = new Date().getMonth() + 1;
         const temp = await this.budgetModel.find({ _id: id }).exec();
         const arr = await this.transactionModel.find({ userID, categoryID: temp[0]['categoryID'], type: 'Chi tiêu', datetime: { $gte: new Date(year, month - 1, 1), $lt: new Date(year, month, 1) } }).populate('categoryID').exec();
-        return { budget: temp[0], transactions: arr };
+        const expense = arr.reduce((acc, cur) => acc + parseInt(cur.money), 0);
+        return { budget: temp[0], remaining: Number(temp[0].budget) - expense, transactions: arr };
     }
     async createBudget(userID, categoryID, budget) {
         const year = new Date().getFullYear();
