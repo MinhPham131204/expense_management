@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import { ThemeProvider } from "./components/ThemeProvider";
-import LoginSignup from "./pages/LoginSignup";
+
 import TransactionTable from "./components/TransactionTable";
+import LoginSignup from "./pages/LoginSignup";
 
 function App(): JSX.Element {
   return (
