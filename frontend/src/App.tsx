@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import { ThemeProvider } from "./components/ThemeProvider";
-import { BarCharts } from "@/components/Charts"
+import LoginSignup from "./pages/LoginSignup";
+import TransactionTable from "./components/TransactionTable";
 
 function App(): JSX.Element {
   return (
@@ -8,7 +9,8 @@ function App(): JSX.Element {
       <ThemeProvider>
         <Router>
           <Routes>
-            <Route path="/" element={<BarCharts />} />
+            <Route path="/" element={<LoginSignup />} />
+            <Route path="/tab" element={<TransactionTable />} />
           </Routes>
         </Router>
       </ThemeProvider>
