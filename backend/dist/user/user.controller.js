@@ -22,13 +22,13 @@ let UserController = class UserController {
     }
     async createUser(response, username, email, password) {
         const acc = await this.userService.createUser(username, email, password);
-        response.cookie('token', acc['_id'], { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 7 });
+        response.cookie('token', acc['_id'].toString(), { httpOnly: true, secure: true, maxAge: 1000 * 60 * 60 * 24 * 7 });
         return { message: 'Signup successful' };
     }
     async loginUser(response, email, password) {
         const acc = await this.userService.loginUser(email, password);
         if (acc.length) {
-            response.cookie('token', acc[0]['_id'], { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 7 });
+            response.cookie('token', acc[0]['_id'].toString(), { httpOnly: true, secure: true, maxAge: 1000 * 60 * 60 * 24 * 7 });
             return { message: 'Login successful' };
         }
         else {
