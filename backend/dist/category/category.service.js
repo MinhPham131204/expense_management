@@ -22,9 +22,19 @@ let CategoryService = class CategoryService {
     constructor(transactionModel) {
         this.transactionModel = transactionModel;
     }
-    async getCategories() {
-        const rootCategories = await this.transactionModel.find({ superID: null }).select("name").exec();
-        const categoriesWithSubs = await Promise.all(rootCategories.map(async (rootCategory) => {
+    async getExpenseCategories() {
+        const expenseRootCategories = await this.transactionModel.find({ superID: null, name: { $ne: 'Thu nhập' } }).select("name").exec();
+        const categoriesWithSubs = await Promise.all(expenseRootCategories.map(async (rootCategory) => {
+            const subCategories = await this.transactionModel.find({ superID: rootCategory._id }).select("name").exec();
+            const categoryWithSubs = rootCategory.toObject();
+            categoryWithSubs['subCategory'] = subCategories;
+            return categoryWithSubs;
+        }));
+        return categoriesWithSubs;
+    }
+    async getIncomeCategories() {
+        const incomeRootCategories = await this.transactionModel.find({ superID: null, name: { $eq: 'Thu nhập' } }).select("name").exec();
+        const categoriesWithSubs = await Promise.all(incomeRootCategories.map(async (rootCategory) => {
             const subCategories = await this.transactionModel.find({ superID: rootCategory._id }).select("name").exec();
             const categoryWithSubs = rootCategory.toObject();
             categoryWithSubs['subCategory'] = subCategories;

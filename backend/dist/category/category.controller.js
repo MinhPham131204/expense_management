@@ -17,17 +17,26 @@ let CategoryController = class CategoryController {
     constructor(categoryService) {
         this.categoryService = categoryService;
     }
-    async getCategories() {
-        return this.categoryService.getCategories();
+    async getExpenseCategories() {
+        return this.categoryService.getExpenseCategories();
+    }
+    async getIncomeCategories() {
+        return this.categoryService.getIncomeCategories();
     }
 };
 exports.CategoryController = CategoryController;
 __decorate([
-    (0, common_1.Get)(),
+    (0, common_1.Get)('expense'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
-], CategoryController.prototype, "getCategories", null);
+], CategoryController.prototype, "getExpenseCategories", null);
+__decorate([
+    (0, common_1.Get)('income'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], CategoryController.prototype, "getIncomeCategories", null);
 exports.CategoryController = CategoryController = __decorate([
     (0, common_1.Controller)('category'),
     __metadata("design:paramtypes", [category_service_1.CategoryService])
