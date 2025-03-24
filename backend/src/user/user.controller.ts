@@ -16,7 +16,7 @@ export class UserController {
     @Body('password') password: string,
   ) {
     const acc = await this.userService.createUser(username, email, password);
-    response.cookie('token', acc[0]['_id'], { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 7 });
+    response.cookie('token', acc['_id'], { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 7 });
     return { message: 'Signup successful' };
   }
 

@@ -26,8 +26,8 @@ let UserService = class UserService {
         const newUser = new this.userModel({ username, email, password });
         return newUser.save();
     }
-    async loginUser(accountname, password) {
-        return this.userModel.find({ accountname, password }).exec();
+    async loginUser(email, password) {
+        return this.userModel.find({ email, password }).exec();
     }
 };
 exports.UserService = UserService;
