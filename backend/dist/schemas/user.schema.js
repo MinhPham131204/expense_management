@@ -15,7 +15,6 @@ let User = class User {
     username;
     email;
     password;
-    phone;
 };
 exports.User = User;
 __decorate([
@@ -30,10 +29,6 @@ __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], User.prototype, "password", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true, unique: true }),
-    __metadata("design:type", String)
-], User.prototype, "phone", void 0);
 exports.User = User = __decorate([
     (0, mongoose_1.Schema)({ versionKey: false })
 ], User);

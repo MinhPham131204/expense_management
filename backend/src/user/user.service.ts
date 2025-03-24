@@ -13,7 +13,7 @@ export class UserService {
     return newUser.save();
   }
 
-  async loginUser(accountname: string, password: string): Promise<User[]> {
-    return this.userModel.find({ accountname, password }).exec();
+  async loginUser(email: string, password: string): Promise<User[]> {
+    return this.userModel.find({ email, password }).exec();
   }
 }

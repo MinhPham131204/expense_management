@@ -20,8 +20,8 @@ let UserController = class UserController {
     constructor(userService) {
         this.userService = userService;
     }
-    async createUser(response, username, email, password, phone) {
-        const acc = await this.userService.createUser(username, email, password, phone);
+    async createUser(response, username, email, password) {
+        const acc = await this.userService.createUser(username, email, password);
         response.cookie('token', acc[0]['_id'], { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 7 });
         return { message: 'Signup successful' };
     }
@@ -43,9 +43,8 @@ __decorate([
     __param(1, (0, common_1.Body)('username')),
     __param(2, (0, common_1.Body)('email')),
     __param(3, (0, common_1.Body)('password')),
-    __param(4, (0, common_1.Body)('phone')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String, String, String]),
+    __metadata("design:paramtypes", [Object, String, String, String]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "createUser", null);
 __decorate([
