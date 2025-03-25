@@ -2,61 +2,60 @@ import { useEffect, useState } from "react";
 import { Send, ChevronsUpDown, Check } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import TransactionConfirmationPopup from "./TransactionConfirmationPopup";
-import { TransactionType } from "@/lib/types";
+import { SubCategory, TransactionType } from "@/lib/types";
+import axios from "axios";
+
+
 
 
 
 const categoryMap: Record<string, { type: TransactionType; name: string }> = {
-  // 💼 Công việc & Thu nhập (Income)
-  "lương|thưởng|thu nhập|kinh doanh|cho thuê|làm thêm|part-time|freelance|hoa hồng|cộng tác viên|tiền công|tiền trợ cấp|trả lương|thanh toán hợp đồng|tiền quảng cáo": { type: "income", name: "Công việc & Thu nhập" },
-  
-  // 💰 Tiết kiệm & Ngân hàng (Income)
-  "tiết kiệm|gửi ngân hàng|sổ tiết kiệm|lãi suất|tiền gửi có kỳ hạn|tiền gửi không kỳ hạn|quỹ dự phòng": { type: "expense", name: "Tiết kiệm & Ngân hàng" },
-  "tiết kiệm|lãi suất": { type: "income", name: "Tiết kiệm & Ngân hàng" },
+  // 🍽️ Ăn uống
+  "ăn|ăn sáng|ăn trưa|ăn tối|cafe|trà sữa|nhậu|buffet|đặt đồ ăn|snack|bánh|pizza|mì|hủ tiếu": { type: "Chi tiêu", name: "Ăn uống" },
+
+  // 🏬 Chợ - Siêu thị
+  "chợ|siêu thị|mua thực phẩm|mua rau|mua thịt|đi chợ|mua đồ tươi sống": { type: "Chi tiêu", name: "Chợ - Siêu thị" },
 
   // 🚗 Di chuyển
-  "về|đổ xăng|xăng|taxi|grab|be|gojek|xe ôm|vé xe|phí cầu đường|bảo dưỡng xe|sửa xe|rửa xe|xe bus|metro|tàu điện|vé tàu|vé máy bay|bãi đỗ xe|gửi xe|về quê": { type: "expense", name: "Di chuyển" },
-  "chạy xe ôm, chạy grab, chạy be, chạy gojek": { type: "income", name: "Di chuyển" },
+  "về|taxi|grab|be|gojek|xe ôm|vé xe|bảo dưỡng xe|sửa xe|rửa xe|xe bus|metro|tàu điện|vé tàu|vé máy bay|bãi đỗ xe|gửi xe|xăng": { type: "Chi tiêu", name: "Di chuyển" },
 
-  // 🍽️ Ăn uống
-  "ăn|ăn sáng|ăn trưa|ăn tối|cafe|trà sữa|nhậu|buffet|nấu ăn|đi ăn|đặt đồ ăn|bánh mì|phở|bún|hủ tiếu|lẩu|nướng|gọi đồ|snack|đồ ăn vặt|bánh|gongcha|highlands|ngô gia|starbuck|pizza|mỳ|mì": { type: "expense", name: "Ăn uống" },
+  // 💡 Hóa đơn
+  "tiền điện|tiền nước|wifi|internet|truyền hình|điện thoại trả trước|điện thoại trả sau|phí dịch vụ": { type: "Chi tiêu", name: "Hóa đơn" },
 
-  // 👗 Mua sắm
-  "mua áo|mua quần|giày dép|túi xách|đồng hồ|mỹ phẩm|phụ kiện|nước hoa|trang sức|son môi|kem dưỡng|điện thoại|laptop|tai nghe|máy ảnh|ipad|tablet|đồ điện tử": { type: "expense", name: "Mua sắm" },
+  // 🏠 Tiền thuê nhà
+  "tiền nhà|thuê nhà|trả tiền thuê nhà": { type: "Chi tiêu", name: "Tiền thuê nhà" },
 
-  // 💡 Hóa đơn & Tiện ích
-  "tiền điện|tiền nước|wifi|internet|truyền hình|nạp điện thoại|tiền mạng|gói cước|điện thoại trả trước|điện thoại trả sau|phí dịch vụ|phí ngân hàng|phí ATM": { type: "expense", name: "Hóa đơn & Tiện ích" },
+  // 🛍️ Mua sắm
+  "mua|mua áo|mua quần|giày dép|túi xách|đồng hồ|mỹ phẩm|phụ kiện|điện thoại|laptop|máy ảnh|tablet|đồ điện tử": { type: "Chi tiêu", name: "Mua sắm" },
 
-  // 🏠 Nhà cửa
-  "tiền nhà|thuê nhà|sửa nhà|nội thất|đồ gia dụng|bàn ghế|tủ lạnh|máy giặt|điều hòa|bếp gas|quạt điện|máy lọc nước|giường ngủ|đệm|trang trí nhà cửa": { type: "expense", name: "Nhà cửa" },
+  // 🏥 Sức khỏe
+  "bệnh viện|khám bệnh|mua thuốc|bảo hiểm sức khỏe|tiêm vaccine|bác sĩ|dược phẩm|khám nha khoa|mắt kính|kính áp tròng": { type: "Chi tiêu", name: "Sức khỏe" },
+
+  // 💆‍♀️ Làm đẹp
+  "đẹp|làm tóc|trang điểm|mua mỹ phẩm|chăm sóc da|spa|massage|phẫu thuật thẩm mỹ": { type: "Chi tiêu", name: "Làm đẹp" },
 
   // 🎉 Giải trí
-  "xem phim|karaoke|du lịch|vé máy bay|thể thao|gym|spa|massage|quần vợt|bóng đá|cầu lông|bơi lội|câu cá|hát karaoke|rạp chiếu phim|game|mua game|twitch|steam|đi chơi": { type: "expense", name: "Giải trí" },
+  "xem phim|karaoke|du lịch|thể thao|gym|bơi lội|câu cá|hát karaoke|game|mua game|steam|đi chơi": { type: "Chi tiêu", name: "Giải trí" },
 
-  // 🏥 Y tế & Sức khỏe
-  "bệnh viện|khám bệnh|mua thuốc|bảo hiểm sức khỏe|tiêm vaccine|bác sĩ|dược phẩm|thực phẩm chức năng|khám nha khoa|mắt kính|kính áp tròng": { type: "expense", name: "Y tế & Sức khỏe" },
+  // 💰 Lương (Income)
+  "lương|lương tháng|thu nhập chính|trả lương": { type: "Thu nhập", name: "Lương" },
 
-  // 📚 Giáo dục
-  "học phí|sách vở|khóa học|luyện thi|chứng chỉ|học online|gia sư|đi học|đại học|cao học|thạc sĩ|tiến sĩ|học ngoại ngữ|toefl|ielts|toeic|du học|kỹ năng mềm": { type: "expense", name: "Giáo dục" },
+  // 🎁 Thưởng (Income)
+  "thưởng|bonus|thưởng lễ|thưởng tết|thưởng hiệu suất|thưởng doanh số": { type: "Thu nhập", name: "Thưởng" },
 
-  // 👨‍👩‍👧‍👦 Gia đình & Sự kiện
-  "sinh nhật|tiền mừng|chăm con|quà lễ tết|mua bỉm|sữa bột|đám cưới|đám hỏi|đám giỗ|đám tang|quà tặng|chơi với con|đi chơi gia đình|trông trẻ|phí nhà trẻ": { type: "expense", name: "Gia đình & Sự kiện" },
+  // 💸 Trợ cấp (Income)
+  "trợ cấp|hỗ trợ tài chính|trợ cấp thất nghiệp|tiền trợ cấp chính phủ": { type: "Thu nhập", name: "Trợ cấp" },
 
-  // 📈 Đầu tư & Kinh doanh
-  "đầu tư|chứng khoán|bất động sản|coin|crypto|cổ phiếu|quỹ đầu tư|forex|mua vàng|bán vàng|lợi nhuận|chốt lời|tái đầu tư": { type: "expense", name: "Đầu tư & Kinh doanh" },
+  // 🏦 Thu hồi nợ (Income)
+  "thu hồi nợ|trả nợ|nhận tiền nợ|đòi nợ thành công": { type: "Thu nhập", name: "Thu hồi nợ" },
 
-  // 🎗️ Từ thiện & Xã hội (Expense)
-  "từ thiện|quyên góp|thiện nguyện|ủng hộ|tặng quà|trợ cấp|đóng góp|quỹ cộng đồng|quỹ học bổng|bảo trợ xã hội": { type: "expense", name: "Từ thiện & Xã hội" },
+  // 📈 Kinh doanh (Income)
+  "kinh doanh|bán hàng|doanh thu|thu nhập từ kinh doanh|bán hàng online|bán sản phẩm|thu nhập từ shop": { type: "Thu nhập", name: "Kinh doanh" },
 
-  // 🎮 Công nghệ & Dịch vụ số (Expense)
-  "mua app|netflix|spotify|youtube|tiktok|amazon prime|mua phần mềm|mua hosting|tên miền|phần mềm bản quyền|cloud storage|mua nhạc|streaming": { type: "expense", name: "Công nghệ & Dịch vụ số" },
-
-  // 🎁 Quà tặng & Đồ dùng cá nhân (Expense)
-  "quà tặng|mua quà|hộp quà|hoa tươi|bánh kem|mua đồ handmade|mua quà cho người yêu|mua quà sinh nhật|mua quà tết|mua quà cưới": { type: "expense", name: "Quà tặng & Đồ dùng cá nhân" },
-
-  // 🎯 Khác (Fallback)
-  ".*": { type: "expense", name: "Khác" }
+  // 🎯 Not found (Fallback)
+  ".*": { type: "Chi tiêu", name: "Not found" }
 };
+
 
 function getCategory(input: string): { type: TransactionType; name: string } {
   input = input.toLowerCase().trim();
@@ -66,7 +65,7 @@ function getCategory(input: string): { type: TransactionType; name: string } {
       return categoryMap[pattern];
     }
   }
-  return { type: "expense" as TransactionType, name: "Khác" };
+  return { type: "Chi tiêu" as TransactionType, name: "Not found" };
 }
 
 function parseTransaction(input: string) {
@@ -76,7 +75,7 @@ function parseTransaction(input: string) {
   const match = input.match(regex);
   if (!match) return null;
 
-  const [, datePart, amountStr, description] = match;
+  const [, datePart, moneyStr, description] = match;
   let date = new Date(today); // Mặc định là hôm nay
 
   //console.log(datePart);
@@ -99,23 +98,27 @@ function parseTransaction(input: string) {
   
   // Chuyển về định dạng YYYY-MM-DD
   // Xử lý số tiền
-  const amountStrNew = amountStr.toLowerCase().replace(/[,vnđ]/g, "").trim();
-  let amount = parseFloat(amountStrNew);
-  if (amountStrNew.includes("k")) amount *= 1000;
-  if (amountStrNew.includes("m")) amount *= 1000000;
+  
+  const moneyStrNew = moneyStr.toLowerCase().replace(/[,vnđ]/g, "").trim();
+  let money = parseFloat(moneyStrNew);
+  
+  if (moneyStrNew.includes("k")) money *= 1000;
+  if (moneyStrNew.includes("m")) money *= 1000000;
 
-  return { date: date, amount, description: description.trim() };
+  return { date: date, money, description: description.trim() };
 }
 
-
-const UserInput = () => {
+const UserInput: React.FC<{categories: SubCategory[]}> = ({categories}) => {
   const [text, setText] = useState("");
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState<string | null>(null);
   const [chose, setChose] = useState(false);
+   
+  //console.log(categories);
+ 
 
   const [popupData, setPopupData] = useState<{
-    amount: number; 
+    money: number; 
     date: Date;
     description: string;
     category: string;
@@ -125,13 +128,6 @@ const UserInput = () => {
   useEffect(() => {
     if(!chose && text.trim()!=="") setValue(getCategory(text).name)
   }, [text, chose])
-
-  const categories = [
-    { name: "moving" },
-    { name: "food" },
-    { name: "entertainment" },
-    { name: "other" },
-  ];
 
   const handleSubmit = (e?: React.KeyboardEvent | React.MouseEvent) => {
     if (e) {
@@ -148,9 +144,15 @@ const UserInput = () => {
 
     const category = getCategory(transaction.description);
 
-    if(chose && value !== null) category.name = value
+    console.log(category);
     
 
+    if(chose && value !== null) category.name = value
+
+
+    
+    console.log(category.name, category.type);
+    
     setPopupData({
       ...transaction,
       category: category.name,
@@ -163,17 +165,20 @@ const UserInput = () => {
     if (!popupData) return;
 
     const formData = {
-      amount: popupData.amount,
-      date: popupData.date,
+      money: popupData.money.toString(),
+      datetime: popupData.date,
       description: popupData.description,
-      category: popupData.category,
-      type: popupData.type as TransactionType,
+      categoryID: categories.find((category) => category.name === popupData.category)?._id,
+      type: popupData.type,
     };
     
     try {
       setPopupData(null)
       setText('')
-      console.log(formData); // api
+      console.log(formData);
+      await axios.post("http://localhost:3000/transaction", formData, {withCredentials: true,})
+      .then((response) => console.log(response))
+      .catch((error) => console.log(error))
       
     } catch (error) {
       console.error("Lỗi khi lưu giao dịch:", error);
@@ -212,7 +217,7 @@ const UserInput = () => {
             onClick={(e) => handleSubmit(e)}
             className="absolute scale-125 top-1/2 right-6 -translate-y-1/2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-all"
           >
-            <Send />
+            <Send color="#3eaef4" />
           </button>
         </div>
       </div>
@@ -227,7 +232,7 @@ const UserInput = () => {
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-2 bg-white shadow-lg rounded-md">
           {categories.length > 0 ? (
-            categories.map((category) => (
+            categories.map((category: SubCategory) => (
               <div
                 key={category.name}
                 className="flex justify-between items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
