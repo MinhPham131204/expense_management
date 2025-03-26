@@ -16,4 +16,8 @@ export class UserService {
   async loginUser(email: string, password: string): Promise<User[]> {
     return this.userModel.find({ email, password }).exec();
   }
+
+  async getUsers( userID: string ): Promise<User[]> {
+    return this.userModel.find({ userID }).exec();
+  }
 }

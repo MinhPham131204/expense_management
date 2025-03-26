@@ -1,9 +1,10 @@
 /* eslint-disable prettier/prettier */ 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { Controller, Post, Body, Res } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { Controller, Post, Body, Res, Req, Get } from '@nestjs/common';
 import { UserService } from './user.service';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 
 @Controller('users')
 export class UserController {
@@ -34,5 +35,12 @@ export class UserController {
     } else {
       return { message: 'Login failed' };
     }
+  }
+
+  @Get()
+  async getUsers(
+    @Req() req: Request,
+  ) {
+    return this.userService.getUsers(req.cookies['token']);
   }
 }
