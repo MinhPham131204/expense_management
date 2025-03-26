@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -8,42 +8,27 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Timeframe } from '../lib/types';
+import axios from "axios";
+interface categoryID {
+  _id: object;
+  name: string;
+  superID: categoryID | null;
+}
 
 interface Transaction {
-  id: number;
-  category: string;
+  categoryID: categoryID
+  category: object;
   description: string;
-  date: string;
-  type: "income" | "expense";
-  amount: number;
+  datetime: Date;
+  type: "Chi tiêu" | "Thu nhập";
+  money: number;
+  userID: object;
+  _id: object;
 }
 
 const sampleData: Transaction[] = [
-  {
-    id: 1,
-    category: "Food",
-    description: "Lunch at restaurant",
-    date: "2025-03-19",
-    type: "expense",
-    amount: 15.99,
-  },
-  {
-    id: 2,
-    category: "Salary",
-    description: "Monthly salary",
-    date: "2025-03-15",
-    type: "income",
-    amount: 3000.0,
-  },
-  {
-    id: 3,
-    category: "Transport",
-    description: "Bus ticket",
-    date: "2025-03-18",
-    type: "expense",
-    amount: 2.5,
-  },
-  // Add more sample transactions as needed
+  
 ];
 
 type SortConfig = {
@@ -51,15 +36,38 @@ type SortConfig = {
   direction: "asc" | "desc";
 } | null;
 
-const TransactionTable: React.FC = () => {
+const TransactionTable: React.FC = (timeframe) => {
   const [transactions, setTransactions] = useState<Transaction[]>(sampleData);
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
+  console.log(timeframe);
+  
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      const url = 'http://localhost:3000/transaction/allInMonth?month=3&year=2025'
+      try{
+
+        const response = await axios.get(url, { withCredentials: true })
+        console.log(response.data);
+        
+        setTransactions(response.data.transactions)
+      }
+      catch(error) {
+        console.error("Error fetching transactions:", error);
+
+      }
+    }
+    fetchTransactions()
+  }, [])
+
+
+
 
   const handleDelete = (id: number) => {
     if (
       window.confirm("Are you sure you want to delete this transaction?")
     ) {
-      setTransactions(transactions.filter((t) => t.id !== id));
+      setTransactions(transactions.filter((t) => t._id !== id));
     }
   };
 
@@ -102,8 +110,8 @@ const TransactionTable: React.FC = () => {
   }, [transactions, sortConfig]);
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Transactions Table</h1>
+    <div className="p-4 ">
+      <h1 className="text-2xl font-bold mb-4 p-10">Transactions History</h1>
       <Table className="min-w-full">
         <TableHeader>
           <TableRow>
@@ -121,9 +129,9 @@ const TransactionTable: React.FC = () => {
             </TableHead>
             <TableHead
               className="cursor-pointer"
-              onClick={() => requestSort("date")}
+              onClick={() => requestSort("datetime")}
             >
-              Date{getSortIndicator("date")}
+              Date{getSortIndicator("datetime")}
             </TableHead>
             <TableHead
               className="cursor-pointer"
@@ -133,9 +141,9 @@ const TransactionTable: React.FC = () => {
             </TableHead>
             <TableHead
               className="cursor-pointer"
-              onClick={() => requestSort("amount")}
+              onClick={() => requestSort("money")}
             >
-              Amount{getSortIndicator("amount")}
+              Amount{getSortIndicator("money")}
             </TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -143,17 +151,17 @@ const TransactionTable: React.FC = () => {
         <TableBody>
           {sortedTransactions.length > 0 ? (
             sortedTransactions.map((transaction) => (
-              <TableRow key={transaction.id}>
+              <TableRow key={transaction._id}>
                 <TableCell className="capitalize">
-                  {transaction.category}
+                  {transaction.categoryID.name}
                 </TableCell>
                 <TableCell>{transaction.description}</TableCell>
                 <TableCell>
-                  {new Date(transaction.date).toLocaleDateString()}
+                  {new Date(transaction.datetime).toLocaleDateString()}
                 </TableCell>
                 <TableCell
                   className={`capitalize ${
-                    transaction.type === "income"
+                    transaction.type === "Thu nhập"
                       ? "text-green-600"
                       : "text-red-600"
                   }`}
@@ -161,7 +169,7 @@ const TransactionTable: React.FC = () => {
                   {transaction.type}
                 </TableCell>
                 <TableCell>
-                  ${transaction.amount.toFixed(2)}
+                  ${transaction.money}
                 </TableCell>
                 <TableCell>
                   <Button

@@ -1,48 +1,127 @@
 import { getDaysInMonth, getWeekRange } from "@/lib/helper"
-import { Timeframe } from "@/lib/types";
+import { Timeframe, Transaction } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, TooltipProps } from "recharts";
-
-
-    const year = 2025
-    const week = 12
-    const startDate = getWeekRange(year, week).Monday
-    const endDate = getWeekRange(year, week).Sunday
-
-    const month = 3 // tháng 3 thật
+    const formattedBarData = (transactions: Transaction[], timeframe: Timeframe) => {
+        switch (timeframe) {
+            case "latest": {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Đặt về 00:00 để so sánh chính xác
+            
+                const sevenDaysAgo = new Date()
+                sevenDaysAgo.setDate(today.getDate() - 6); // Lùi về 6 ngày trước (tính cả hôm nay là 7 ngày)
+                sevenDaysAgo.setHours(0,0,0,0)
+                // Tạo mảng mặc định cho 7 ngày
+                const result = Array.from({ length: 7 }, (_, i) => {
+                    const date = new Date();
+                    date.setDate(sevenDaysAgo.getDate() + i);
+            
+                    return {
+                        date: date.toISOString().split("T")[0], // Lưu YYYY-MM-DD
+                        expense: 0,
+                        income: 0,
+                    };
+                });
+            
+                // Gộp dữ liệu từ transactions vào mảng 7 ngày gần nhất
+                console.log(sevenDaysAgo);
+                
+                transactions.forEach((t) => {
+                    const transDate = new Date(t.datetime);
+                    transDate.setHours(0, 0, 0, 0); // Chuẩn hóa về 00:00 để so sánh
+                    console.log(transDate);
+                    
+            
+                    if (transDate >= sevenDaysAgo && transDate <= today) {
+                        const index = Math.floor((transDate.getTime() - sevenDaysAgo.getTime()) / (1000 * 60 * 60 * 24)); // Tính vị trí trong mảng
+                        
+                        if (index >= 0 && index < 7) {
+                            if (t.type === "Thu nhập") {
+                                result[index].income += Number(t.money);
+                            } else {
+                                result[index].expense += Number(t.money);
+                            }
+                        }
+                    }
+                });
+            
+                return result;
+            }
+            
     
-    const weekBarData = {
-        days: Array.from({ length: 7 }, (_, i) => ({
-            day: i + 2,
-            expense: Math.floor(Math.random() * (350 - 50 + 1)) + 50, 
-            income: Math.floor(Math.random() * (500 - 100 + 1)) + 100 
-        }))
+            case "month": {
+                const date = new Date();
+                const year = date.getFullYear();
+                const month = date.getMonth() + 1;
+                
+                // Tạo danh sách ngày trong tháng
+                const daysInMonth = new Date(year, month, 0).getDate();
+                const result = Array.from({ length: daysInMonth }, (_, i) => ({
+                    year,
+                    month,
+                    date: i + 1,
+                    expense: 0,
+                    income: 0,
+                }));
+    
+                // Duyệt qua transactions để gán vào từng ngày tương ứng
+                transactions.forEach((t) => {
+                    const transDate = new Date(t.datetime);
+                    const transDay = transDate.getDate();
+    
+                    const index = transDay - 1;
+                    if (index >= 0 && index < daysInMonth) {
+                        if (t.type === "Thu nhập") {
+                            result[index].income += Number(t.money);
+                        } else {
+                            result[index].expense += Number(t.money);
+                        }
+                    }
+                });
+    
+                return result;
+            }
+    
+            case "year": {
+                const year = new Date().getFullYear();
+                const result = Array.from({ length: 12 }, (_, i) => ({
+                    year,
+                    month: i + 1,
+                    expense: 0,
+                    income: 0,
+                }));
+    
+                transactions.forEach((t) => {
+                    const transDate = new Date(t.datetime);
+                    const transMonth = transDate.getMonth();
+    
+                    if (transDate.getFullYear() === year) {
+                        if (t.type === "Thu nhập") {
+                            result[transMonth].income += Number(t.money);
+                        } else {
+                            result[transMonth].expense += Number(t.money);
+                        }
+                    }
+                });
+    
+                return result;
+            }
+    
+            default:
+                return [];
+        }
     };
+    
 
-    const monthBarData = {
-        days: Array.from({ length: getDaysInMonth(year, month) }, (_, i) => ({
-            year: 2025,
-            month: 3,
-            date: i + 1,
-            expense: Math.floor(Math.random() * (500 - 50 + 1)) + 50,  
-            income: Math.floor(Math.random() * (1000 - 100 + 1)) + 100 
-        }))
-    };
+export const BarCharts: React.FC<{transactions: Transaction[], tf: Timeframe}> = ({transactions, tf}) => {
+    const [timeframe, setTimeframe] = useState<Timeframe> (tf);
 
-    const yearBarData = {
-        months: Array.from({ length: 12 }, (_, i) => ({
-            year: 2025,
-            month: i + 1,
-            expense: Math.floor(Math.random() * (5000 - 50 + 1)) + 50, 
-            income: Math.floor(Math.random() * (10000 - 100 + 1)) + 100
-        }))
-    };
-
-export const BarCharts: React.FC = () => {
-    const [timeframe, setTimeframe] = useState<Timeframe> ("year");
-
-    const data = timeframe === 'year' ? yearBarData.months : timeframe === 'month' ? monthBarData.days : weekBarData.days
+    const data = formattedBarData(transactions, 'latest')
+    console.log(transactions);
+    
+    
+    
   return (
     <div className={cn("flex items-center justify-center p-4 bg-white shadow-md rounded-lg", 
     timeframe === "year" ? "w-[1000px]" : 
@@ -99,8 +178,8 @@ export const BarCharts: React.FC = () => {
                     axisLine={false}
                     padding={{ left: 5, right: 5 }} 
                     dataKey={(data) => {
-                        const { year, month, date, day } = data;
-                        console.log(data);
+                        const { year, month, date } = data;
+                        // console.log(data);
                         
                         if (timeframe === "year") {
                             return new Date(year, month - 1, 1).toLocaleDateString("default", {
@@ -114,11 +193,12 @@ export const BarCharts: React.FC = () => {
                             });
                         }
     
-                        if (timeframe === "week") {
-                            const weekDays = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật"];
-                            return weekDays[day - 2];
+                        if (timeframe === "latest") {
+                            return new Date(data.date).toLocaleDateString("vi-VN", {
+                                day: "2-digit",
+                                month: "2-digit",
+                            });
                         }
-    
                         return "";
                     }}
                 />
@@ -163,44 +243,76 @@ const CustomTooltip: React.FC<TooltipProps<number, string>> = ({ active, payload
 import { PieChart, Pie, Cell } from "recharts";
 
 
-const weekPieData = {
-    categories: [
-        { name: "Ăn uống", value: 100, type: "expense" },
-        { name: "Giải trí", value: 50, type: "expense" },
-        { name: "Mua sắm", value: 200, type: "expense" },
-        { name: "Đi lại", value: 80, type: "expense" },
-        { name: "Hóa đơn & Dịch vụ", value: 150, type: "expense" },
-        { name: "Sức khỏe", value: 120, type: "expense" },
-        { name: "Giáo dục", value: 300, type: "expense" },
+
+const formattedPieData = (transactions: Transaction[], timeframe: Timeframe) => {
+    // Lọc giao dịch theo timeframe nếu cần
+    let filteredTransactions = transactions;
     
-        { name: "Lương", value: 2000, type: "income" },
-        { name: "Thưởng", value: 500, type: "income" },
-        { name: "Đầu tư", value: 700, type: "income" },
-        { name: "Bán hàng", value: 400, type: "income" },
-        { name: "Khác", value: 100, type: "income" }
-    ]
-}
+    if (timeframe === "latest") {
+        const today = new Date();
+        const lastWeek = new Date();
+        lastWeek.setDate(today.getDate() - 6);
+        lastWeek.setHours(0,0,0,0)
+
+        filteredTransactions = transactions.filter((t) => {
+            const transDate = new Date(t.datetime);
+            return transDate >= lastWeek && transDate <= today;
+        });
+    }
+
+    if (timeframe === "month") {
+        const today = new Date();
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+
+        filteredTransactions = transactions.filter((t) => {
+            const transDate = new Date(t.datetime);
+            return transDate.getMonth() === currentMonth && transDate.getFullYear() === currentYear;
+        });
+    }
+
+    // Gom nhóm theo danh mục (ăn uống, giải trí, ...)
+    const categoryMap = new Map<string, { name: string; money: number; type: string }>();
+
+    filteredTransactions.forEach(({ categoryID, money, type }) => {
+        if (!categoryMap.has(categoryID.name)) {
+            categoryMap.set(categoryID.name, {
+                name: categoryID.name,
+                money: 0,
+                type: type,
+            });
+        }
+        categoryMap.get(categoryID.name)!.money += Number(money);
+    });
+
+    return Array.from(categoryMap.values());
+};
 
 const COLORS = [
     "#ef4444", "#f97316", "#facc15", // Expense: Đỏ, Cam, Vàng
     "#10b981", "#3b82f6", "#22c55e", // Income: Xanh lá, Xanh dương
 ];
 
-export const PieWeekChart = () => {
+export const PieCharts: React.FC<{transactions: Transaction[], tf: Timeframe}> = ({transactions, tf}) => {
+
+    const [timeframe, setTimeframe] = useState(tf);
+    const data = formattedPieData(transactions, timeframe);
+    // console.log(data);
+
     return (
         <div className="w-[400px] flex items-center justify-center p-4 bg-white shadow-md rounded-lg">
             <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                     <Pie
-                        data={weekPieData.categories}
-                        dataKey="value"
+                        data={data}
+                        dataKey="money"
                         nameKey="name"
                         cx="50%"
                         cy="50%"
                         outerRadius={100}
                         label
                     >
-                        {weekPieData.categories.map((entry, index) => (
+                        {data.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                     </Pie>
