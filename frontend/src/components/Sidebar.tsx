@@ -16,6 +16,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 
+
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 interface MenuItem {
     title: string;
     url: string;
@@ -119,17 +121,26 @@ const SideBar: React.FC = () => {
                                     {items.map((item) => (
                                         <SidebarMenuItem key={item.title}>
                                             <SidebarMenuButton
-                                                className={`flex items-center h-16 gap-4 w-full px-4 py-3 rounded-lg text-lg font-medium transition-all duration-200
+                                                className={`flex items-center justify-start h-16 gap-4 w-full px-10 py-3 rounded-lg text-lg font-bl transition-all duration-200
                                                     ${active === item.url ? "bg-gradient-to-r rounded-full dark:from-blue-300 dark:to-blue-900 text-white shadow-sm from-[#588ec5] to-[#475f8b] dark:text-white" : "hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-[#2C2C3A] dark:hover:text-white"}
                                                     active:scale-[0.98] 
-                                                    ${isCollapsed ? 'justify-center h-12 w-full' : ''} /* Center items when collapsed */
+                                                    ${isCollapsed ? 'justify-center h-12 w-full px-4' : ''} /* Center items when collapsed */
                                                 `}
                                                 asChild
                                             >
-                                                <Link to={item.url} className="flex items-center w-full">
-                                                    <item.icon className={`${isCollapsed && 'w-10 h-10'} w-6 h-6 text-rose-600 dark:text-rose-400`} />
-                                                    {!isCollapsed && <span className="text-rose-600 dark:text-rose-400">{item.title}</span>}
-                                                </Link>
+                                                <Link to={item.url} className="flex items-center w-full gap-3">
+                                                  <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                      <item.icon className={`${isCollapsed ? 'w-10 h-10' : 'w-6 h-6'} text-rose-600 dark:text-rose-400`} />
+                                                    </TooltipTrigger>
+                                                    {isCollapsed && (
+                                                      <TooltipContent>
+                                                        <span className="text-sm font-medium ">{item.title}</span>
+                                                      </TooltipContent>
+                                                    )}
+                                                  </Tooltip>
+                                                  {!isCollapsed && <span className="text-rose-800 dark:text-slate-200">{item.title}</span>}
+                                              </Link>
                                             </SidebarMenuButton>
                                         </SidebarMenuItem>
                                     ))}
