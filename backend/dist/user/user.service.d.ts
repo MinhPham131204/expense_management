@@ -5,4 +5,5 @@ export declare class UserService {
     constructor(userModel: Model<UserDocument>);
     createUser(username: string, email: string, password: string): Promise<User>;
     loginUser(email: string, password: string): Promise<User[]>;
+    getUsers(userID: string): Promise<User[]>;
 }

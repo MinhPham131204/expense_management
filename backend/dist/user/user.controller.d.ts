@@ -1,5 +1,5 @@
 import { UserService } from './user.service';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 export declare class UserController {
     private readonly userService;
     constructor(userService: UserService);
@@ -9,4 +9,5 @@ export declare class UserController {
     loginUser(response: Response, email: string, password: string): Promise<{
         message: string;
     }>;
+    getUsers(req: Request): Promise<import("../schemas/user.schema").User[]>;
 }

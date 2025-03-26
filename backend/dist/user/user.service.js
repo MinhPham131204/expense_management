@@ -29,6 +29,9 @@ let UserService = class UserService {
     async loginUser(email, password) {
         return this.userModel.find({ email, password }).exec();
     }
+    async getUsers(userID) {
+        return this.userModel.find({ _id: userID }).exec();
+    }
 };
 exports.UserService = UserService;
 exports.UserService = UserService = __decorate([

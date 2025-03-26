@@ -35,6 +35,9 @@ let UserController = class UserController {
             return { message: 'Login failed' };
         }
     }
+    async getUsers(req) {
+        return this.userService.getUsers(req.cookies['token']);
+    }
 };
 exports.UserController = UserController;
 __decorate([
@@ -56,6 +59,13 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "loginUser", null);
+__decorate([
+    (0, common_1.Get)(),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "getUsers", null);
 exports.UserController = UserController = __decorate([
     (0, common_1.Controller)('users'),
     __metadata("design:paramtypes", [user_service_1.UserService])
