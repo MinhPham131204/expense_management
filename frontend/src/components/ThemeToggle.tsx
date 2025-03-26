@@ -27,7 +27,7 @@ export function ThemeToggle({isCollapsed}: ThemeToggleProps) {
     >
       {theme === "dark" ? (
         <div className="flex items-center justify-center gap-4">
-          <Sun className="w-5 h-5 text-yellow-400" />
+          <Sun className="w-5 h-5 text-yellow-700" />
           { !isCollapsed && <span className="text-gray-700 hover:text-[#c2bb6f] hidden sm:inline">Light Mode</span>}
         </div>
       ) : (

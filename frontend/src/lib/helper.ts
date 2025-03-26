@@ -1,3 +1,4 @@
+import { Transaction } from "./types";
 
 export function getWeekRange(year: number, week: number) {
 	const d = new Date(year, 0, 4);
@@ -19,3 +20,11 @@ export function getWeekRange(year: number, week: number) {
 export const getDaysInMonth = (year: number, month: number) => {
 	return new Date(year, month, 0).getDate();
 };
+
+export const TRANSACTION_FIELDS: Record<string, keyof Transaction> = {
+	"Category": "categoryID",
+	"Description": "description",
+	"Date": "datetime",
+	"Type": "type",
+	"Amount": "money",
+  };

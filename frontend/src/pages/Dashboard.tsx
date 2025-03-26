@@ -80,26 +80,6 @@ const Dashboard = () => {
     }
   }, [transData, categories]);
 
-  // if (loading) { 
-  //   return (
-  //     <div className='w-screen h-screen flex items-center justify-center'>
-  //       <motion.div
-  //         className="flex items-center justify-center min-h-screen"
-  //         initial={{ opacity: 0 }}
-  //         animate={{ opacity: 1 }}
-  //         exit={{ opacity: 0 }}
-  //       >
-  //         <motion.div
-  //           className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"
-  //           animate={{ rotate: 360 }}
-  //           transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-  //         />
-  //       </motion.div>
-  //     </div>
-  //   );
-  // }
-
-
   if (loading) {
     return (
       <div className='w-screen min-h-screen flex items-center justify-center '>
@@ -112,21 +92,13 @@ const Dashboard = () => {
   }
 
 
-
-if (loading) {
-  return (
-    <div className="loading-container">
-      <div className="loading-spinner"></div>
-      <p className="loading-text">Loading...</p>
-    </div>
-  );
-}
-
-
   return ( // do lấy latest nên cần sửa transdata lại
     
-    <div className='flex items-center justify-between w-screen'>
-      <SideBar/>
+    <div className='flex items-center justify-between w-screen min-h-screen 
+  bg-gradient-to-bl from-blue-100 to-cyan-200 dark:from-gray-900 dark:to-gray-700'>
+      <div className='max-w-1/5 '>
+        <SideBar/>
+      </div>
       <div className='flex items-center justify-center flex-col w-[80%]'>
         <div className='flex items-center justify-center p-10 gap-10'>
           <BarCharts transactions={transData} tf='latest'/>

@@ -1,6 +1,8 @@
 import TransactionTable from '../components/TransactionTable';
 import SideBar from '../components/Sidebar';
 import { Period, Timeframe } from '@/lib/types';
+import "./pages.css"; 
+import { useEffect, useState } from 'react';
 
 
 interface Props { 
@@ -10,11 +12,37 @@ interface Props {
   setTimeframe: (timeframe: Timeframe) => void;
 }
 
+
+
 const History = () => {
   const timeframe: Timeframe = 'month'
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+      const isLoggedIn = sessionStorage.getItem("isLoggedIn") === "true";
+      if (!isLoggedIn) {
+        setLoading(false);
+      }
+  }, []);
+
+  setTimeout(() => {
+    setLoading(false)
+  }, 800)
+
+  if (loading) {
+    return (
+      <div className='w-screen min-h-screen flex items-center justify-center '>
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p className="loading-text">Loading...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
-    <div className='flex items-center justify-center w-screen min-h-screen'>
+<div className="flex items-center justify-evenly w-screen min-h-screen 
+  bg-gradient-to-bl from-blue-300 to-cyan-400 dark:from-gray-900 dark:to-gray-700">
       <SideBar/>
       <TransactionTable timeframe={timeframe}/>
     </div>
