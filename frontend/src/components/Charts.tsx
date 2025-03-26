@@ -25,12 +25,10 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContaine
                 });
             
                 // Gộp dữ liệu từ transactions vào mảng 7 ngày gần nhất
-                console.log(sevenDaysAgo);
                 
                 transactions.forEach((t) => {
                     const transDate = new Date(t.datetime);
                     transDate.setHours(0, 0, 0, 0); // Chuẩn hóa về 00:00 để so sánh
-                    console.log(transDate);
                     
             
                     if (transDate >= sevenDaysAgo && transDate <= today) {
@@ -118,7 +116,6 @@ export const BarCharts: React.FC<{transactions: Transaction[], tf: Timeframe}> =
     const [timeframe, setTimeframe] = useState<Timeframe> (tf);
 
     const data = formattedBarData(transactions, 'latest')
-    console.log(transactions);
     
     
     
