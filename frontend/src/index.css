@@ -206,3 +206,29 @@ button:focus-visible {
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+.custom-toast {
+  animation: slideInRight 0.5s ease-out, slideOutRight 0.5s ease-in 3.5s forwards;
+}

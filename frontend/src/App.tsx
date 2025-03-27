@@ -8,7 +8,8 @@ import History from "./pages/History";
 import Budget from "./pages/Budget";
 import { useEffect } from "react";
 import Statistic from "./pages/Statistic";
-
+import { Toaster } from "sonner";
+import './index.css'
 
 function App(): JSX.Element {
   const { isLoggedIn, setIsLoggedIn } = useAuth();
@@ -24,7 +25,15 @@ function App(): JSX.Element {
   
 
   return (
+    
     <ThemeProvider>
+      <Toaster 
+        position="bottom-right" 
+        richColors
+        toastOptions={{
+          className: "custom-toast",
+        }}
+      />
       <Router>
         <Routes>
           <Route path="/" element={isLoggedIn ? <Dashboard /> : <Navigate to="/login" />} />

@@ -150,7 +150,7 @@ const TransactionFilters = ({
       />
 
       {/* Nút áp dụng và reset */}
-      <Button onClick={() => onApply(filters)}>Áp dụng</Button>
+      <Button onClick={() => onApply(filters)}> <span className={`px-2 py-1 font-bold rounded text-red-400`}>Áp dụng</span></Button>
       <Button
         variant="outline"
         onClick={() =>

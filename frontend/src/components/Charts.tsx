@@ -1,7 +1,7 @@
 import { Timeframe, Transaction } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, TooltipProps } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, TooltipProps, Rectangle, Legend } from "recharts";
     const formattedBarData = (transactions: Transaction[], timeframe: Timeframe) => {
         switch (timeframe) {
             case "latest": {
@@ -111,130 +111,125 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContaine
     };
     
 
-export const BarCharts: React.FC<{transactions: Transaction[], tf: Timeframe}> = ({transactions, tf}) => {
-    const [timeframe, setTimeframe] = useState<Timeframe> (tf);
-
-    const data = formattedBarData(transactions, 'latest')
+export const BarCharts: React.FC<{ transactions: Transaction[]; tf: Timeframe }> = ({ transactions, tf }) => {
+    const [timeframe, setTimeframe] = useState<Timeframe>(tf);
+    const data = formattedBarData(transactions, 'latest');
     
-    
-    
-  return (
-    <div className={cn("flex items-center justify-center p-4 bg-white shadow-md rounded-lg", 
-    timeframe === "year" ? "w-[1000px]" : 
-    timeframe === "month" ? "w-[1200px]" : "w-[600px]")}>
-        <ResponsiveContainer width={"100%"} height={300}>
+    return (
+        <div className={cn(
+        "flex items-center justify-center p-4 bg-cyan-50 shadow-lg rounded-lg",
+        timeframe === "year" ? "w-[1000px]" :
+        timeframe === "month" ? "w-[1200px]" : "w-[600px]"
+        )}>
+        <ResponsiveContainer width="100%" height={350}>
             <BarChart 
-                data={data}
-                height={300}
-                barCategoryGap={5}
+            data={data}
+            height={350}
+            barCategoryGap={10}
+            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
             >
-                <defs> 
-                  <linearGradient 
-                      id="incomeBar" 
-                      x1="0" y1="0" 
-                      x2="0" y2="1"
-                  > 
-                      <stop 
-                          offset={"0"} 
-                          stopColor="#10b981" 
-                          stopOpacity={"1"} 
-                      /> 
-                      <stop 
-                          offset={"1"} 
-                          stopColor="#10b981" 
-                          stopOpacity={"0"} 
-                      /> 
-                  </linearGradient>
+            {/* Gradient for Bars */}
+            <defs>
+                <linearGradient id="incomeBar" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#10b981" stopOpacity="1" />
+                <stop offset="1" stopColor="#10b981" stopOpacity="0.3" />
+                </linearGradient>
+                <linearGradient id="expenseBar" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#ef4444" stopOpacity="1" />
+                <stop offset="1" stopColor="#ef4444" stopOpacity="0.3" />
+                </linearGradient>
+            </defs>
+    
+            {/* Grid */}
+            <CartesianGrid strokeDasharray="4 4" strokeOpacity="0.4" vertical={false} />
 
-                  <linearGradient 
-                      id="expenseBar" 
-                      x1="0" y1="0" 
-                      x2="0" y2="1"
-                  > 
-                      <stop 
-                          offset={"0"} 
-                          stopColor="#ef4444" 
-                          stopOpacity={"1"} 
-                      /> 
-                      <stop 
-                          offset={"1"} 
-                          stopColor="#ef4444" 
-                          stopOpacity={"0"} 
-                      /> 
-                  </linearGradient>
-              </defs> 
-                <CartesianGrid 
-                    strokeDasharray="5 5" 
-                    strokeOpacity={"0.3"} 
-                    vertical={false}/>
-                <XAxis 
-                    stroke="#888888"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    padding={{ left: 5, right: 5 }} 
-                    dataKey={(data) => {
-                        const { year, month, date } = data;
-                        // console.log(data);
-                        
-                        if (timeframe === "year") {
-                            return new Date(year, month - 1, 1).toLocaleDateString("default", {
-                                month: "long",
-                            });
-                        }
+            <defs>
+                {/* Định nghĩa mũi tên cho X-Axis và Y-Axis */}
+                <marker id="arrowRight" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto">
+                    <polygon points="0 0, 6 3, 0 6" fill="#4b5563" /> 
+                </marker>
+                <marker id="arrowUp" markerWidth="8" markerHeight="8" refX="150" refY="5" orient="auto" >
+                    <polygon points="6 0, 0 0, 3 6" fill="#4b5563" />
+                </marker>
+            </defs>
+
+            {/* X-Axis */}
+            <XAxis 
+                stroke="#555555"
+                fontSize={12}
+                fontWeight="bold"
+                tickLine={false}
+                padding={{ left: 5, right: 5 }}
+                axisLine={{ strokeWidth: 2, markerEnd: "url(#arrowRight)" }}
+                dataKey={(data) => {
+                const { year, month, date } = data;
+                if (timeframe === "year") {
+                    return new Date(year, month - 1, 1).toLocaleDateString("default", { month: "long" });
+                }
+                if (timeframe === "month") {
+                    return new Date(year, month - 1, date || 1).toLocaleDateString("default", { day: "2-digit" });
+                }
+                if (timeframe === "latest") {
+                    return new Date(data.date).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
+                }
+                return "";
+                }}
+            />
     
-                        if (timeframe === "month") {
-                            return new Date(year, month - 1, date || 1).toLocaleDateString("default", {
-                                day: "2-digit",
-                            });
-                        }
+            {/* Y-Axis */}
+            <YAxis 
+                stroke="#555555" 
+                strokeWidth={2} 
+                fontSize={12}
+                fontWeight="bold"
+                tickLine={false} 
+                // axisLine={{ strokeWidth: 2, markerEnd: "url(#arrowUp)" }}
+            />
     
-                        if (timeframe === "latest") {
-                            return new Date(data.date).toLocaleDateString("vi-VN", {
-                                day: "2-digit",
-                                month: "2-digit",
-                            });
-                        }
-                        return "";
-                    }}
-                />
-                <YAxis 
-                    stroke="#888888" 
-                    fontSize={12} 
-                    tickLine={false} 
-                    axisLine={false} 
-                />
-                <Bar 
-                    dataKey={"income"} 
-                    label="Income" 
-                    fill="url(#incomeBar)" 
-                    radius={4} 
-                    className="cursor-pointer" 
-                />
-                <Bar
-                    dataKey={"expense"} 
-                    label="Expense" 
-                    fill="url(#expenseBar)" 
-                    radius={4} 
-                    className="cursor-pointer"
-                />
-                <Tooltip content={<CustomTooltip />} />
+            {/* Bars */}
+            <Bar dataKey="income" fill="url(#incomeBar)" radius={[4, 4, 0, 0]} fillOpacity={1}>
+                {/* Hiển thị số tiền trên từng cột */}
+                {data.map((entry, index) => (
+                <text key={index} x={index * 50 + 10} y={entry.income - 10} fill="#10b981" fontSize="12" fontWeight="bold">
+                    {entry.income} VNĐ
+                </text>
+                ))}
+            </Bar>
+            <Bar dataKey="expense" fill="url(#expenseBar)" radius={[4, 4, 0, 0]} fillOpacity={1}>
+                {data.map((entry, index) => (
+                <text key={index} x={index * 50 + 10} y={entry.expense - 10} fill="#ef4444" fontSize="12" fontWeight="bold">
+                    {entry.expense} VNĐ
+                </text>
+                ))}
+            </Bar>
+    
+            {/* Tooltip */}
+            {/* <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(59, 130, 246, 0.1)" }} /> */}
+            <defs>
+                <linearGradient id="customCursor" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.7" />
+                    <stop offset="100%" stopColor="#10b981" stopOpacity="0.1" />
+                </linearGradient>
+            </defs>
+
+            <Tooltip content={<CustomTooltip />} cursor={<Rectangle fill="url(#customCursor)" />} />
             </BarChart>
         </ResponsiveContainer>
-    </div>
-  )
-}
+        </div>
+    );
+};
 
 const CustomTooltip: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
     if (!active || !payload || payload.length < 2) return null;
 
     return (
-        <div className="bg-white p-2 rounded shadow-md border">
-            <p className="text-green-500">💰 Income: {payload[0].value}</p>
-            <p className="text-red-500">💸 Expense: {payload[1].value}</p>
+        <div className="bg-teal-50 p-2 rounded-2xl shadow-md border">
+            <p className="text-green-500 font-semibold">💰 Income: {payload[0].value}</p>
+            <p className="text-red-500 font-semibold">💸 Expense: {payload[1].value}</p>
         </div>
     );
 };
+
 
 import { PieChart, Pie, Cell } from "recharts";
 
@@ -283,21 +278,24 @@ const formattedPieData = (transactions: Transaction[], timeframe: Timeframe) => 
 
     return Array.from(categoryMap.values());
 };
-
 const COLORS = [
-    "#ef4444", "#f97316", "#facc15", // Expense: Đỏ, Cam, Vàng
-    "#10b981", "#3b82f6", "#22c55e", // Income: Xanh lá, Xanh dương
+    // Expenses: Đỏ, Cam, Vàng, Hồng, Tím
+    "#ef4444", "#f97316", "#faaa15", "#ec4899", "#8b5cf6",
+
+    // Income: Xanh lá, Xanh dương, Ngọc lam, Xanh lục đậm, Xanh cyan
+    "#10b981", "#3b82f6", "#06b6d4", "#22c55e", "#0ea5e9",
+
 ];
 
-export const PieCharts: React.FC<{transactions: Transaction[], tf: Timeframe}> = ({transactions, tf}) => {
-
+export const PieCharts: React.FC<{ transactions: Transaction[]; tf: Timeframe }> = ({ transactions, tf }) => { 
     const [timeframe, setTimeframe] = useState(tf);
     const data = formattedPieData(transactions, timeframe);
-    // console.log(data);
 
     return (
-        <div className="w-[400px] flex items-center justify-center p-4 bg-white shadow-md rounded-lg">
-            <ResponsiveContainer width="100%" height={300}>
+        <div className="w-1/2 flex flex-col items-center justify-center p-4 bg-white shadow-lg rounded-lg">
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">📊 Phân bổ thu nhập & chi tiêu</h3>
+            
+            <ResponsiveContainer width="100%" height={320}>
                 <PieChart>
                     <Pie
                         data={data}
@@ -306,16 +304,26 @@ export const PieCharts: React.FC<{transactions: Transaction[], tf: Timeframe}> =
                         cx="50%"
                         cy="50%"
                         outerRadius={100}
-                        label
+                        innerRadius={50} // Tạo dạng "doughnut"
+                        paddingAngle={5}  // Tạo khoảng cách giữa các phần
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                        stroke="white"
+                        strokeWidth={2}
                     >
                         {data.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            <Cell
+                                key={`cell-${index}`}
+                                fill={COLORS[index % COLORS.length]}
+                                style={{ filter: "brightness(1)" }}
+                                onMouseEnter={(e) => ((e.currentTarget as unknown) as SVGElement).style.filter = "brightness(1.2)"}
+                                onMouseLeave={(e) => ((e.currentTarget as unknown) as SVGElement).style.filter = "brightness(1)"}
+                            />
                         ))}
                     </Pie>
-                    <Tooltip formatter={(value, name) => [`${value} VND`, name]} />
+                    <Tooltip formatter={(value, name) => [`${value.toLocaleString()} VND`, name]} />
+                    <Legend verticalAlign="bottom" iconSize={12} wrapperStyle={{ marginTop: 10 }} />
                 </PieChart>
             </ResponsiveContainer>
         </div>
     );
 };
-

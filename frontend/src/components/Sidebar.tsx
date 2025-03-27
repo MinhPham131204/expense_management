@@ -18,6 +18,8 @@ import { motion } from "framer-motion";
 
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from "sonner";
+import { useSidebar } from "@/context/SidebarContext";
 interface MenuItem {
     title: string;
     url: string;
@@ -36,8 +38,7 @@ const SideBar: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [active, setActive] = useState(location.pathname);
-    const [isCollapsed, setIsCollapsed] = useState(window.innerWidth < 1024); // Collapse on smaller screens
-    const [isHovered, setIsHovered] = useState(false);
+    const { isCollapsed, toggleSidebar } = useSidebar()
 
     useEffect(() => {
         setActive(location.pathname);
@@ -45,25 +46,25 @@ const SideBar: React.FC = () => {
 
     useEffect(() => {
         const handleResize = () => {
-            setIsCollapsed(window.innerWidth < 1024);
+            if (window.innerWidth < 1024) {
+                toggleSidebar()
+            };
         };
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    const toggleSidebar = () => setIsCollapsed(!isCollapsed);
-
     const handleLogout = async () => {
         const isConfirmed = confirm("Bạn có chắc chắn muốn đăng xuất?");
         if (!isConfirmed) return;
-
         try {
             sessionStorage.removeItem("isLoggedIn");
             setIsLoggedIn(false);
             navigate("/login");
+            toast.success("Đăng xuất thành công!");
         } catch (error) {
             console.error("Logout failed:", error);
-            alert("Logout failed. Please try again.");
+            toast.error("Đăng xuất thất bại. Vui lòng thử lại!");
         }
     };
 
@@ -75,7 +76,7 @@ const SideBar: React.FC = () => {
             <SidebarProvider>
                 <motion.div
                     style={{ width: sidebarWidth }}
-                    className={`min-h-1/2 shadow-xl flex flex-col justify-between border-r
+                    className={`shadow-xl flex flex-col justify-between border-r
                          bg-white text-gray-800 border-gray-200 dark:bg-[#1E1E2D] dark:text-gray-300 dark:border-gray-700
                          transition-all duration-300 ease-in-out overflow-hidden
                          ${isCollapsed ? '' : 'hover:w-[290px]'}
