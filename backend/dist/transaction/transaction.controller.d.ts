@@ -10,4 +10,7 @@ export declare class TransactionController {
         transactions: import("../schemas/transaction.schema").Transaction[];
     }>;
     createTransaction(request: Request, type: string, categoryID: string, money: string, description: string, datetime: string): Promise<import("../schemas/transaction.schema").Transaction>;
+    deleteTransaction(request: Request, transactionID: string): Promise<{
+        message: string;
+    }>;
 }

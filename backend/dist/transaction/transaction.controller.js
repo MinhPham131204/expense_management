@@ -26,6 +26,9 @@ let TransactionController = class TransactionController {
     async createTransaction(request, type, categoryID, money, description, datetime) {
         return this.transactionService.createTransaction(request.cookies['token'], type, categoryID, money, description, datetime);
     }
+    async deleteTransaction(request, transactionID) {
+        return this.transactionService.deleteTransaction(request.cookies['token'], transactionID);
+    }
 };
 exports.TransactionController = TransactionController;
 __decorate([
@@ -49,6 +52,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, String, String, String, String]),
     __metadata("design:returntype", Promise)
 ], TransactionController.prototype, "createTransaction", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], TransactionController.prototype, "deleteTransaction", null);
 exports.TransactionController = TransactionController = __decorate([
     (0, common_1.Controller)('transaction'),
     __metadata("design:paramtypes", [transaction_service_1.TransactionService])
