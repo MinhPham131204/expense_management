@@ -15,6 +15,7 @@ import { Moon, Sun } from "lucide-react";
 import TransactionSummary from "./TransactionSummary";
 import { TRANSACTION_FIELDS } from "@/lib/helper";
 import TransactionFilters from "./TransactionFilter";
+import { toast } from "sonner";
 
 
 
@@ -55,24 +56,39 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
           setAvailableCategories([...new Set(categories)]);
         }
       } catch (error) {
-                console.error("Error fetching transactions:", error);
-              }
-            };
-            fetchTransactions();
-          }, []);
+          console.error("Error fetching transactions:", error);
+        }
+      };
+      fetchTransactions();
+    }, []);
 
 
   const handleEdit = (id: string) => {
     if (window.confirm("Are you sure you want to edit this transaction?")) {
-      alert("Edit transaction with id: " + id);
       // setTransactions(transactions.filter((t) => t._id !== id));
+      toast.info(`Chỉnh sửa giao dịch có ID: ${id}`, {
+        action: {
+          label: "Chỉnh sửa",
+          onClick: () => console.log(`Edit transaction: ${id}`),
+        },
+      });
     }
+    
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this transaction?")) {
-      alert("Delete transaction with id: " + id);
-      // setTransactions(transactions.filter((t) => t._id !== id));
+      try {
+        const response = await axios.delete(`http://localhost:3000/transaction/${id}`, { withCredentials: true });
+        if (response.status === 200) {
+          setTransactions((prev) => prev.filter((t) => t._id !== id));
+          toast.success("Giao dịch đã được xóa!");
+          console.log(`Delete transaction: ${id}`);
+        }
+      } catch (error) {
+        toast.error("Lỗi khi xóa giao dịch!");
+        console.log(error);
+      }
     }
   };
 
@@ -111,7 +127,6 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
   }, [transactions, filters]);
   const sortedTransactions = useMemo(() => {
     const sortableTransactions = [...filteredTransactions];
-    console.log(sortConfig);
     
   
     if (sortConfig !== null) {
@@ -172,13 +187,13 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
       
       <Table className="w-full border rounded-lg overflow-hidden">
         <TableHeader className={cn(darkMode ? "bg-gray-800 text-gray-300" : "bg-gray-100 text-gray-700")}> 
-          <TableRow>
+          <TableRow className="n-child:text-center">
             {["Category", "Description", "Date", "Type", "Amount", "Actions"].map((header, index) => {
               const key = TRANSACTION_FIELDS[header]; // Lấy key từ TRANSACTION_FIELDS
               return (
                 <TableHead
                   key={index}
-                  className="cursor-pointer p-3 text-blue-700 fill-neutral-200 font-bold"
+                  className="cursor-pointer p-3 text-blue-700 fill-neutral-200 font-bold pl-2"
                   onClick={() => key && requestSort(key)}
                 >
                   {header}
@@ -191,8 +206,8 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
         <TableBody>
           {sortedTransactions.length > 0 ? (
             sortedTransactions.map((transaction) => (
-              <TableRow key={transaction._id.toString()} className={cn(darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100")}>
-                <TableCell>{transaction.categoryID.name}</TableCell>
+              <TableRow key={transaction._id.toString()} className={cn(darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100", "font-medium") }>
+                <TableCell className="font-medium">{transaction.categoryID.name}</TableCell>
                 <TableCell>{transaction.description}</TableCell>
                 <TableCell>{new Date(transaction.datetime).toLocaleDateString()}</TableCell>
                 <TableCell className={cn(transaction.type === "Thu nhập" ? "text-emerald-500" : "text-red-400")}>
@@ -200,7 +215,7 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
                 </TableCell>
                 <TableCell>{transaction.money} VNĐ</TableCell>
                 <TableCell>
-                  <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEdit(transaction._id)}> <span className={` ${darkMode ? 'text-emerald-700' : 'text-fuchsia-800'}`}>Edit</span></Button>
+                  {/* <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEdit(transaction._id)}> <span className={` ${darkMode ? 'text-emerald-700' : 'text-fuchsia-800'}`}>Edit</span></Button> */}
                   <Button variant="destructive" size="sm" onClick={() => handleDelete(transaction._id)}> <span className={` ${darkMode ? 'text-red-600' : 'text-red-400'}`}>Delete</span></Button>
                 </TableCell>
               </TableRow>

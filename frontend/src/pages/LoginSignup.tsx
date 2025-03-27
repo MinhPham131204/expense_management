@@ -3,6 +3,7 @@ import axios from "axios";
 import { HandCoins, Landmark  } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 const LoginSignup = () => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ const LoginSignup = () => {
     e.preventDefault();
 
     if (!login && formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match')
+      toast.error("Passwords do not match");
       return;
     }
 
@@ -37,28 +38,31 @@ const LoginSignup = () => {
       try {
         const response = await axios.post(url, formData, { withCredentials: true });
     
-        if (response.status === 201) {
-          console.log("Login successful:", response.data);
-    
-          sessionStorage.setItem("isLoggedIn", "true");
-          setIsLoggedIn(true);  // 🔥 Cập nhật state để re-render
-    
-          navigate("/");
+        if (response.status === 200 && login || response.status === 201 && !login ) {
+          console.log("Login-signup successful:", response);
+          if (login) {
+             sessionStorage.setItem("isLoggedIn", "true")
+             setIsLoggedIn(true);
+             navigate("/");
+          }
+          else {
+            toast.success("Sign up successful, please login!");
+          }
+
         } else {
           console.warn("Unexpected response:", response);
         }
       } catch (error) {
         if (axios.isAxiosError(error)) {
           console.error("Axios error:", error.response?.data || error.message);
-          alert(error.response?.data?.message || "Login failed!");
+          toast.error(error.response?.data?.message || "Login failed!");
         } else {
           console.error("Unexpected error:", error);
-          alert("An unexpected error occurred!");
+          toast.error("An unexpected error occurred!");
         }
       }
     };
     
-    // Gọi hàm login
     fetchLogin();
     
   };
