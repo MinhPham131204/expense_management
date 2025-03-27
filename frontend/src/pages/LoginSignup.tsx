@@ -3,6 +3,7 @@ import axios from "axios";
 import { HandCoins, Landmark  } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 const LoginSignup = () => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ const LoginSignup = () => {
     e.preventDefault();
 
     if (!login && formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match')
+      toast.error("Passwords do not match");
       return;
     }
 
@@ -37,34 +38,37 @@ const LoginSignup = () => {
       try {
         const response = await axios.post(url, formData, { withCredentials: true });
     
-        if (response.status === 201) {
-          console.log("Login successful:", response.data);
-    
-          sessionStorage.setItem("isLoggedIn", "true");
-          setIsLoggedIn(true);  // 🔥 Cập nhật state để re-render
-    
-          navigate("/");
+        if (response.status === 200 && login || response.status === 201 && !login ) {
+          console.log("Login-signup successful:", response);
+          if (login) {
+             sessionStorage.setItem("isLoggedIn", "true")
+             setIsLoggedIn(true);
+             navigate("/");
+          }
+          else {
+            toast.success("Sign up successful, please login!");
+          }
+
         } else {
           console.warn("Unexpected response:", response);
         }
       } catch (error) {
         if (axios.isAxiosError(error)) {
           console.error("Axios error:", error.response?.data || error.message);
-          alert(error.response?.data?.message || "Login failed!");
+          toast.error(error.response?.data?.message || "Login failed!");
         } else {
           console.error("Unexpected error:", error);
-          alert("An unexpected error occurred!");
+          toast.error("An unexpected error occurred!");
         }
       }
     };
     
-    // Gọi hàm login
     fetchLogin();
     
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen min-w-screen bg-gradient-to-r from-[#2a3f54] via-[#6db3bf] to-[#2a3f54]">
+    <div className="flex items-center justify-center min-h-screen min-w-screen bg-gradient-to-r from-[#7695b5] via-[#295346] to-[#050505]">
       <div className="relative bg-transparent w-[768px] max-w-full min-w-[42%] min-h-[560px] rounded-[30px] shadow-lg shadow-[#93b0b5] overflow-hidden">
         <div
           className={`absolute top-0 h-full w-1/2 transition-all duration-500 ${

@@ -15,6 +15,7 @@ import { Moon, Sun } from "lucide-react";
 import TransactionSummary from "./TransactionSummary";
 import { TRANSACTION_FIELDS } from "@/lib/helper";
 import TransactionFilters from "./TransactionFilter";
+import { toast } from "sonner";
 
 
 
@@ -43,51 +44,7 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
     category: "",
     keyword: "",
   });
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        const response = await axios.get("http://localhost:3000/transaction/allInMonth?month=3&year=2025", { withCredentials: true });
-        setTransactions(response.data.transactions);
-        const categories = response.data.transactions
-          .filter((t: Transaction) => t.categoryID && typeof t.categoryID.name === "string")
-          .map((t: Transaction) => t.categoryID.name) as string[];
-        if (categories.length > 0) {
-          setAvailableCategories([...new Set(categories)]);
-        }
-      } catch (error) {
-                console.error("Error fetching transactions:", error);
-              }
-            };
-            fetchTransactions();
-          }, []);
 
-
-  const handleEdit = (id: string) => {
-    if (window.confirm("Are you sure you want to edit this transaction?")) {
-      alert("Edit transaction with id: " + id);
-      // setTransactions(transactions.filter((t) => t._id !== id));
-    }
-  };
-
-  const handleDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this transaction?")) {
-      alert("Delete transaction with id: " + id);
-      // setTransactions(transactions.filter((t) => t._id !== id));
-    }
-  };
-
-  const requestSort = (key: keyof Transaction) => {
-    let direction: "asc" | "desc" = "asc";
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
-  };
-
-  const getSortIndicator = (key: keyof Transaction) => {
-    if (!sortConfig || sortConfig.key !== key) return null;
-    return sortConfig.direction === "asc" ? " ▲" : " ▼";
-  };
   const filteredTransactions = useMemo(() => {
     return transactions.filter((transaction) => {
       const { startDate, endDate, type, minAmount, maxAmount, category, keyword } = filters;
@@ -109,9 +66,9 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
       return true;
     });
   }, [transactions, filters]);
+
   const sortedTransactions = useMemo(() => {
     const sortableTransactions = [...filteredTransactions];
-    console.log(sortConfig);
     
   
     if (sortConfig !== null) {
@@ -155,9 +112,81 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
     return sortableTransactions;
   }, [ sortConfig, filteredTransactions]);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const transactionsPerPage = 16;
+
+  const paginatedTransactions = useMemo(() => {
+    const startIndex = (currentPage - 1) * transactionsPerPage;
+    const endIndex = startIndex + transactionsPerPage;
+    return sortedTransactions.slice(startIndex, endIndex);
+  }, [sortedTransactions, currentPage]);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/transaction/allInMonth?month=3&year=2025", { withCredentials: true });
+        setTransactions(response.data.transactions);
+        const categories = response.data.transactions
+          .filter((t: Transaction) => t.categoryID && typeof t.categoryID.name === "string")
+          .map((t: Transaction) => t.categoryID.name) as string[];
+        if (categories.length > 0) {
+          setAvailableCategories([...new Set(categories)]);
+        }
+      } catch (error) {
+          console.error("Error fetching transactions:", error);
+        }
+      };
+      fetchTransactions();
+    }, []);
+
+
+  const handleEdit = (id: string) => {
+    if (window.confirm("Are you sure you want to edit this transaction?")) {
+      // setTransactions(transactions.filter((t) => t._id !== id));
+      toast.info(`Chỉnh sửa giao dịch có ID: ${id}`, {
+        action: {
+          label: "Chỉnh sửa",
+          onClick: () => console.log(`Edit transaction: ${id}`),
+        },
+      });
+    }
+    
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this transaction?")) {
+      try {
+        const response = await axios.delete(`http://localhost:3000/transaction/${id}`, { withCredentials: true });
+        if (response.status === 200) {
+          setTransactions((prev) => prev.filter((t) => t._id !== id));
+          toast.success("Giao dịch đã được xóa!");
+          console.log(`Delete transaction: ${id}`);
+        }
+      } catch (error) {
+        toast.error("Lỗi khi xóa giao dịch!");
+        console.log(error);
+      }
+    }
+  };
+
+  const requestSort = (key: keyof Transaction) => {
+    let direction: "asc" | "desc" = "asc";
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIndicator = (key: keyof Transaction) => {
+    if (!sortConfig || sortConfig.key !== key) return null;
+    return sortConfig.direction === "asc" ? " ▲" : " ▼";
+  };
+  
+  
+
   return (
-    <div className={cn(" rounded-lg shadow-lg gap-10 flex m-2 p-4", darkMode ? "bg-gray-900 text-white" : "bg-white flex min-w-1/2  text-gray-900")}> 
-      <div className={`flex flex-col items-center gap-6 p-4 `}>
+    <div className={cn(" rounded-lg shadow-lg gap-10 flex w-[90%] h-[920px] m-2 p-4", darkMode ? "bg-gray-900 text-white" : "bg-white flex min-w-1/2  text-gray-900")}> 
+      <div className={`flex flex-col items-center gap-6 max-w-1/3 p-4 `}>
         <div className="flex flex-col items-center text-center gap-4 w-full max-w-2xl">
           <h3 className="font-bold text-4xl">Transactions History</h3>
           <TransactionSummary transactions={transactions} />
@@ -169,49 +198,66 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
         </Button>
       </div>
 
-      
-      <Table className="w-full border rounded-lg overflow-hidden">
-        <TableHeader className={cn(darkMode ? "bg-gray-800 text-gray-300" : "bg-gray-100 text-gray-700")}> 
-          <TableRow>
-            {["Category", "Description", "Date", "Type", "Amount", "Actions"].map((header, index) => {
-              const key = TRANSACTION_FIELDS[header]; // Lấy key từ TRANSACTION_FIELDS
-              return (
-                <TableHead
-                  key={index}
-                  className="cursor-pointer p-3 text-blue-700 fill-neutral-200 font-bold"
-                  onClick={() => key && requestSort(key)}
-                >
-                  {header}
-                  {key ? getSortIndicator(key) : null}
-                </TableHead>
-              );
-            })}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sortedTransactions.length > 0 ? (
-            sortedTransactions.map((transaction) => (
-              <TableRow key={transaction._id.toString()} className={cn(darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100")}>
-                <TableCell>{transaction.categoryID.name}</TableCell>
-                <TableCell>{transaction.description}</TableCell>
-                <TableCell>{new Date(transaction.datetime).toLocaleDateString()}</TableCell>
-                <TableCell className={cn(transaction.type === "Thu nhập" ? "text-emerald-500" : "text-red-400")}>
-                  {transaction.type}
-                </TableCell>
-                <TableCell>{transaction.money} VNĐ</TableCell>
-                <TableCell>
-                  <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEdit(transaction._id)}> <span className={` ${darkMode ? 'text-emerald-700' : 'text-fuchsia-800'}`}>Edit</span></Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleDelete(transaction._id)}> <span className={` ${darkMode ? 'text-red-600' : 'text-red-400'}`}>Delete</span></Button>
-                </TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={6} className="text-center py-4">No transactions available.</TableCell>
+      <div className="flex flex-col items-center gap-4 w-full flex-3 max-w-2/3">
+        <Table className="w-full border rounded-lg overflow-hidden">
+          <TableHeader className={cn(darkMode ? "bg-gray-800 text-gray-300" : "bg-gray-100 text-gray-700")}> 
+            <TableRow className="n-child:text-center">
+              {["Category", "Description", "Date", "Type", "Amount", "Actions"].map((header, index) => {
+                const key = TRANSACTION_FIELDS[header]; // Lấy key từ TRANSACTION_FIELDS
+                return (
+                  <TableHead
+                    key={index}
+                    className="cursor-pointer p-3 text-blue-700 fill-neutral-200 font-bold pl-2"
+                    onClick={() => key && requestSort(key)}
+                  >
+                    {header}
+                    {key ? getSortIndicator(key) : null}
+                  </TableHead>
+                );
+              })}
             </TableRow>
-          )}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {paginatedTransactions.length > 0 ? (
+              paginatedTransactions.map((transaction) => (
+                <TableRow key={transaction._id.toString()} className={cn(darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100", "font-medium") }>
+                  <TableCell className="font-medium">{transaction.categoryID.name}</TableCell>
+                  <TableCell>{transaction.description}</TableCell>
+                  <TableCell>{new Date(transaction.datetime).toLocaleDateString()}</TableCell>
+                  <TableCell className={cn(transaction.type === "Thu nhập" ? "text-emerald-500" : "text-red-400")}>
+                    {transaction.type}
+                  </TableCell>
+                  <TableCell>{transaction.money} VNĐ</TableCell>
+                  <TableCell>
+                    {/* <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEdit(transaction._id)}> <span className={` ${darkMode ? 'text-emerald-700' : 'text-fuchsia-800'}`}>Edit</span></Button> */}
+                    <Button variant="destructive" size="sm" onClick={() => handleDelete(transaction._id)}> <span className={` ${darkMode ? 'text-red-600' : 'text-red-400'}`}>Delete</span></Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-4">No transactions available.</TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+
+        <div className="flex justify-center space-x-2">
+          <Button 
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} 
+            disabled={currentPage === 1}
+          >
+            <span className="text-gray-700">Prev</span>
+          </Button>
+          <span className="font-bold text-lg">Page {currentPage}</span>
+          <Button 
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            disabled={currentPage * transactionsPerPage >= sortedTransactions.length}
+          >
+            <span className="text-gray-700">Next</span>
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };

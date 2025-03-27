@@ -27,7 +27,7 @@ const History = () => {
 
   setTimeout(() => {
     setLoading(false)
-  }, 800)
+  }, 100)
 
   if (loading) {
     return (
@@ -41,10 +41,14 @@ const History = () => {
   }
   
   return (
-<div className="flex items-center justify-evenly w-screen min-h-screen 
-  bg-gradient-to-bl from-blue-300 to-cyan-400 dark:from-gray-900 dark:to-gray-700">
-      <SideBar/>
-      <TransactionTable timeframe={timeframe}/>
+    <div className="flex flex-row items-center justify-evenly w-screen min-h-screen 
+      bg-gradient-to-bl from-blue-200 to-slate-200 dark:from-gray-900 dark:to-gray-700">
+      <div className='flex-1'>
+        <SideBar/>
+      </div>
+      <div className="flex-4">
+        <TransactionTable timeframe={timeframe} />
+      </div>
     </div>
   )
 }

@@ -4,10 +4,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import TransactionConfirmationPopup from "./TransactionConfirmationPopup";
 import { SubCategory, TransactionType } from "@/lib/types";
 import axios from "axios";
-
-
-
-
+import { toast } from "sonner";
 
 const categoryMap: Record<string, { type: TransactionType; name: string }> = {
   // 🍽️ Ăn uống
@@ -17,13 +14,13 @@ const categoryMap: Record<string, { type: TransactionType; name: string }> = {
   "chợ|siêu thị|mua thực phẩm|mua rau|mua thịt|đi chợ|mua đồ tươi sống": { type: "Chi tiêu", name: "Chợ - Siêu thị" },
 
   // 🚗 Di chuyển
-  "về|taxi|grab|be|gojek|xe ôm|vé xe|bảo dưỡng xe|sửa xe|rửa xe|xe bus|metro|tàu điện|vé tàu|vé máy bay|bãi đỗ xe|gửi xe|xăng": { type: "Chi tiêu", name: "Di chuyển" },
+  "đi|về|taxi|grab|be|gojek|xe ôm|vé xe|bảo dưỡng xe|sửa xe|rửa xe|xe bus|metro|tàu điện|vé tàu|vé máy bay|bãi đỗ xe|gửi xe|xăng": { type: "Chi tiêu", name: "Di chuyển" },
 
   // 💡 Hóa đơn
   "tiền điện|tiền nước|wifi|internet|truyền hình|điện thoại trả trước|điện thoại trả sau|phí dịch vụ": { type: "Chi tiêu", name: "Hóa đơn" },
 
   // 🏠 Tiền thuê nhà
-  "tiền nhà|thuê nhà|trả tiền thuê nhà": { type: "Chi tiêu", name: "Tiền thuê nhà" },
+  "tiền nhà|thuê nhà|trả tiền thuê nhà|nhà": { type: "Chi tiêu", name: "Tiền thuê nhà" },
 
   // 🛍️ Mua sắm
   "mua|mua áo|mua quần|giày dép|túi xách|đồng hồ|mỹ phẩm|phụ kiện|điện thoại|laptop|máy ảnh|tablet|đồ điện tử": { type: "Chi tiêu", name: "Mua sắm" },
@@ -53,7 +50,7 @@ const categoryMap: Record<string, { type: TransactionType; name: string }> = {
   "kinh doanh|bán hàng|doanh thu|thu nhập từ kinh doanh|bán hàng online|bán sản phẩm|thu nhập từ shop": { type: "Thu nhập", name: "Kinh doanh" },
 
   // 🎯 Not found (Fallback)
-  ".*": { type: "Chi tiêu", name: "Not found" }
+  ".*": { type: "Chi tiêu", name: "Chưa rõ" }
 };
 
 
@@ -65,7 +62,7 @@ function getCategory(input: string): { type: TransactionType; name: string } {
       return categoryMap[pattern];
     }
   }
-  return { type: "Chi tiêu" as TransactionType, name: "Not found" };
+  return { type: "Chi tiêu" as TransactionType, name: "Chưa rõ" };
 }
 
 function parseTransaction(input: string) {
@@ -114,9 +111,6 @@ const UserInput: React.FC<{categories: SubCategory[]}> = ({categories}) => {
   const [value, setValue] = useState<string | null>(null);
   const [chose, setChose] = useState(false);
    
-  //console.log(categories);
- 
-
   const [popupData, setPopupData] = useState<{
     money: number; 
     date: Date;
@@ -144,14 +138,14 @@ const UserInput: React.FC<{categories: SubCategory[]}> = ({categories}) => {
 
     const category = getCategory(transaction.description);
 
-    console.log(category);
+    // console.log(category);
     
 
     if(chose && value !== null) category.name = value
 
 
     
-    console.log(category.name, category.type);
+    // console.log(category.name, category.type);
     
     setPopupData({
       ...transaction,
@@ -163,6 +157,11 @@ const UserInput: React.FC<{categories: SubCategory[]}> = ({categories}) => {
 
   const handleConfirmPopup = async () => {
     if (!popupData) return;
+
+    if (popupData.category === "Chưa rõ") {
+      toast.warning("Không thể xác định danh mục giao dịch hiện tại! Vui lòng chọn thủ công");
+      return;
+    }
 
     const formData = {
       money: popupData.money.toString(),
@@ -179,9 +178,12 @@ const UserInput: React.FC<{categories: SubCategory[]}> = ({categories}) => {
       await axios.post("http://localhost:3000/transaction", formData, {withCredentials: true,})
       .then((response) => console.log(response))
       .catch((error) => console.log(error))
+      window.location.reload();
+
+      toast.success("Giao dịch thực hiện thành công!!")
       
     } catch (error) {
-      console.error("Lỗi khi lưu giao dịch:", error);
+      toast.error("Lỗi khi lưu giao dịch:" + error);
     }
   };
 
@@ -190,7 +192,7 @@ const UserInput: React.FC<{categories: SubCategory[]}> = ({categories}) => {
   };
 
   return (
-    <div className="flex gap-4 flex-col items-center justify-center w-full h-[400px] z-10">
+    <div className="flex gap-4 flex-col items-center justify-center w-full z-10">
       <div className="w-[800px] flex flex-col gap-4">
         {/* Label */}
         <label htmlFor="inputField" className="text-2xl font-semibold text-gray-700 dark:text-gray-300">
@@ -198,7 +200,7 @@ const UserInput: React.FC<{categories: SubCategory[]}> = ({categories}) => {
         </label>
 
         {/* Input Box */}
-        <div className="relative">
+        <div className="relative ">
           <input
             id="inputField"
             type="text"
@@ -211,7 +213,7 @@ const UserInput: React.FC<{categories: SubCategory[]}> = ({categories}) => {
             }}
             placeholder="Nhập nội dung... Eg. 10/6 106k về quê"
             style={{ fontSize: "1.5rem" }}
-            className="w-full px-4 py-10 placeholder:text-2xl border-2 border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-500 transition-all pr-16"
+            className="w-full px-4 py-6 placeholder:text-2xl border-2 border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-500 transition-all pr-16"
           />
           <button
             onClick={(e) => handleSubmit(e)}

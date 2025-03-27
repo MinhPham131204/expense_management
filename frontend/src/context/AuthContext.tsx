@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { toast } from "sonner";
 
 type AuthContextType = {
   isLoggedIn: boolean;
@@ -18,16 +19,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Khi trang load lại, kiểm tra xem token có trong cookies không
   useEffect(() => {
-    
-      console.log('token');
-
       axios
         .get("http://localhost:3000/users/", { withCredentials: true })
         .then((response) => {
           setUsername(response.data[0].username);
         })
         .catch((error) => {
-          console.error("Error getting username:", error);
+          toast.error("Error getting username:", error);
           setUsername("User");
         });
   }, []);
