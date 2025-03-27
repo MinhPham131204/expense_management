@@ -32,6 +32,14 @@ let TransactionService = class TransactionService {
         const newTransaction = new this.transactionModel({ userID, type, categoryID, money, description, datetime });
         return newTransaction.save();
     }
+    async deleteTransaction(userID, transactionID) {
+        const transaction = await this.transactionModel.findById(transactionID);
+        if (!transaction) {
+            throw new common_1.NotFoundException('Giao dịch không tồn tại.');
+        }
+        await this.transactionModel.findByIdAndDelete(transactionID);
+        return { message: 'Giao dịch đã được xóa thành công.' };
+    }
 };
 exports.TransactionService = TransactionService;
 exports.TransactionService = TransactionService = __decorate([

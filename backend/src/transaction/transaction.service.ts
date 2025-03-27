@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Transaction, TransactionDocument } from 'src/schemas/transaction.schema';
@@ -19,5 +19,16 @@ export class TransactionService {
     async createTransaction(userID: string, type: string, categoryID: string, money: string, description: string, datetime: string ): Promise<Transaction> {
         const newTransaction = new this.transactionModel({ userID, type, categoryID, money, description, datetime });
         return newTransaction.save();
+    }
+
+    async deleteTransaction(userID: string, transactionID: string): Promise<{ message: string }> {
+        const transaction = await this.transactionModel.findById(transactionID);
+
+        if (!transaction) {
+            throw new NotFoundException('Giao dịch không tồn tại.');
+        }
+
+        await this.transactionModel.findByIdAndDelete(transactionID);
+        return { message: 'Giao dịch đã được xóa thành công.' };
     }
 }

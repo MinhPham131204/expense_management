@@ -10,4 +10,7 @@ export declare class TransactionService {
         transactions: Transaction[];
     }>;
     createTransaction(userID: string, type: string, categoryID: string, money: string, description: string, datetime: string): Promise<Transaction>;
+    deleteTransaction(userID: string, transactionID: string): Promise<{
+        message: string;
+    }>;
 }

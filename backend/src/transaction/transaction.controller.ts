@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable prettier/prettier */
-import { Controller, Get, Query, DefaultValuePipe, ParseIntPipe, Post, Body, Req } from '@nestjs/common';
+import { Controller, Get, Query, DefaultValuePipe, ParseIntPipe, Post, Body, Req, Delete, Param } from '@nestjs/common';
 import { Request } from 'express';
 import { TransactionService } from './transaction.service';
 
@@ -29,5 +29,10 @@ export class TransactionController {
         @Body('datetime') datetime: string,
     ) {
         return this.transactionService.createTransaction(request.cookies['token'], type, categoryID, money, description, datetime);
+    }
+
+    @Delete(':id')
+    async deleteTransaction(@Req() request: Request, @Param('id') transactionID: string) {
+        return this.transactionService.deleteTransaction(request.cookies['token'], transactionID);
     }
 }
