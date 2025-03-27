@@ -27,12 +27,14 @@ let UserController = class UserController {
     }
     async loginUser(response, email, password) {
         const acc = await this.userService.loginUser(email, password);
-        if (acc.length) {
+        console.log('acc: ', acc);
+        if (acc.length !== 0) {
             response.cookie('token', acc[0]['_id'].toString(), { httpOnly: true, secure: true, maxAge: 1000 * 60 * 60 * 24 * 7 });
-            return { message: 'Login successful' };
+            return response.status(200).json({ message: 'Login successful' });
         }
         else {
-            return { message: 'Login failed' };
+            console.log('failed');
+            return response.status(401).json({ message: 'Login failed' });
         }
     }
     async getUsers(req) {
@@ -41,6 +43,7 @@ let UserController = class UserController {
 };
 exports.UserController = UserController;
 __decorate([
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     (0, common_1.Post)('signup'),
     __param(0, (0, common_1.Res)({ passthrough: true })),
     __param(1, (0, common_1.Body)('username')),
