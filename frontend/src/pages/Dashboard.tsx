@@ -100,6 +100,7 @@ const Dashboard = () => {
     
     <div className='flex items-center justify-between w-screen min-h-screen 
   bg-gradient-to-bl from-blue-100 to-cyan-100 dark:from-gray-900 dark:to-gray-700'>
+
       <div className='flex-1'>
         <SideBar/>
       </div>

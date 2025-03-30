@@ -43,6 +43,7 @@ const History = () => {
   return (
     <div className="flex flex-row items-center justify-evenly w-screen min-h-screen 
       bg-gradient-to-bl from-blue-200 to-slate-200 dark:from-gray-900 dark:to-gray-700">
+
       <div className='flex-1'>
         <SideBar/>
       </div>
