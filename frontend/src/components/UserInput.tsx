@@ -14,13 +14,13 @@ const categoryMap: Record<string, { type: TransactionType; name: string }> = {
   "chợ|siêu thị|mua thực phẩm|mua rau|mua thịt|đi chợ|mua đồ tươi sống": { type: "Chi tiêu", name: "Chợ - Siêu thị" },
 
   // 🚗 Di chuyển
-  "về|taxi|grab|be|gojek|xe ôm|vé xe|bảo dưỡng xe|sửa xe|rửa xe|xe bus|metro|tàu điện|vé tàu|vé máy bay|bãi đỗ xe|gửi xe|xăng": { type: "Chi tiêu", name: "Di chuyển" },
+  "đi|về|taxi|grab|be|gojek|xe ôm|vé xe|bảo dưỡng xe|sửa xe|rửa xe|xe bus|metro|tàu điện|vé tàu|vé máy bay|bãi đỗ xe|gửi xe|xăng": { type: "Chi tiêu", name: "Di chuyển" },
 
   // 💡 Hóa đơn
   "tiền điện|tiền nước|wifi|internet|truyền hình|điện thoại trả trước|điện thoại trả sau|phí dịch vụ": { type: "Chi tiêu", name: "Hóa đơn" },
 
   // 🏠 Tiền thuê nhà
-  "tiền nhà|thuê nhà|trả tiền thuê nhà": { type: "Chi tiêu", name: "Tiền thuê nhà" },
+  "tiền nhà|thuê nhà|trả tiền thuê nhà|nhà": { type: "Chi tiêu", name: "Tiền thuê nhà" },
 
   // 🛍️ Mua sắm
   "mua|mua áo|mua quần|giày dép|túi xách|đồng hồ|mỹ phẩm|phụ kiện|điện thoại|laptop|máy ảnh|tablet|đồ điện tử": { type: "Chi tiêu", name: "Mua sắm" },
@@ -178,6 +178,8 @@ const UserInput: React.FC<{categories: SubCategory[]}> = ({categories}) => {
       await axios.post("http://localhost:3000/transaction", formData, {withCredentials: true,})
       .then((response) => console.log(response))
       .catch((error) => console.log(error))
+      window.location.reload();
+
 
       toast.success("Giao dịch thực hiện thành công!!")
       

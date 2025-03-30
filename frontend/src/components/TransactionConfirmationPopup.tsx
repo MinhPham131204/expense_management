@@ -8,7 +8,8 @@ import {
   DialogHeader, 
   DialogTitle, 
   DialogDescription, 
-  DialogFooter 
+  DialogFooter, 
+  DialogClose
 } from "@/components/ui/dialog";
 
 interface TransactionData {
@@ -135,10 +136,10 @@ const TransactionConfirmationPopup = forwardRef<HTMLDivElement, TransactionConfi
 
           <DialogFooter>
             <Button type="button" onClick={onConfirm} onKeyDown={(event) => event.key === "Enter" && onConfirm()}>
-              Xác nhận
+              <span className="text-black ">Xác nhận</span>
             </Button>
             <Button type="button" onClick={onClose}>
-              Hủy
+              <span className="text-black ">Hủy</span>
             </Button>
           </DialogFooter>
         </DialogContent>
