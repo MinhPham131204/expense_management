@@ -20,6 +20,9 @@ let TransactionController = class TransactionController {
     constructor(transactionService) {
         this.transactionService = transactionService;
     }
+    async getTransactions(request, year) {
+        return this.transactionService.getTransactions(request.cookies['token'], year);
+    }
     async getTransactionsInMonth(request, month, year) {
         return this.transactionService.getTransactionsInMonth(request.cookies['token'], month, year);
     }
@@ -31,6 +34,14 @@ let TransactionController = class TransactionController {
     }
 };
 exports.TransactionController = TransactionController;
+__decorate([
+    (0, common_1.Get)(),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Query)('year', new common_1.DefaultValuePipe(new Date().getFullYear()), common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number]),
+    __metadata("design:returntype", Promise)
+], TransactionController.prototype, "getTransactions", null);
 __decorate([
     (0, common_1.Get)('allInMonth'),
     __param(0, (0, common_1.Req)()),

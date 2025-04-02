@@ -3,6 +3,12 @@ import { Transaction, TransactionDocument } from 'src/schemas/transaction.schema
 export declare class TransactionService {
     private transactionModel;
     constructor(transactionModel: Model<TransactionDocument>);
+    getTransactions(userID: string, year: number): Promise<{
+        income: number;
+        expense: number;
+        difference: number;
+        transactions: Transaction[];
+    }>;
     getTransactionsInMonth(userID: string, month: number, year: number): Promise<{
         income: number;
         expense: number;
