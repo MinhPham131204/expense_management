@@ -1,119 +1,20 @@
 import { Timeframe, Transaction } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { log } from "console";
 import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, TooltipProps, Rectangle, Legend } from "recharts";
-    const formattedBarData = (transactions: Transaction[], timeframe: Timeframe) => {
-        switch (timeframe) {
-            case "latest": {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0); // Đặt về 00:00 để so sánh chính xác
-            
-                const sevenDaysAgo = new Date()
-                sevenDaysAgo.setDate(today.getDate() - 6); // Lùi về 6 ngày trước (tính cả hôm nay là 7 ngày)
-                sevenDaysAgo.setHours(0,0,0,0)
-                // Tạo mảng mặc định cho 7 ngày
-                const result = Array.from({ length: 7 }, (_, i) => {
-                    const date = new Date();
-                    date.setDate(sevenDaysAgo.getDate() + i);
-            
-                    return {
-                        date: date.toISOString().split("T")[0], // Lưu YYYY-MM-DD
-                        expense: 0,
-                        income: 0,
-                    };
-                });
-            
-                // Gộp dữ liệu từ transactions vào mảng 7 ngày gần nhất
-                
-                transactions.forEach((t) => {
-                    const transDate = new Date(t.datetime);
-                    transDate.setHours(0, 0, 0, 0); // Chuẩn hóa về 00:00 để so sánh
-                    
-            
-                    if (transDate >= sevenDaysAgo && transDate <= today) {
-                        const index = Math.floor((transDate.getTime() - sevenDaysAgo.getTime()) / (1000 * 60 * 60 * 24)); // Tính vị trí trong mảng
-                        
-                        if (index >= 0 && index < 7) {
-                            if (t.type === "Thu nhập") {
-                                result[index].income += Number(t.money);
-                            } else {
-                                result[index].expense += Number(t.money);
-                            }
-                        }
-                    }
-                });
-            
-                return result;
-            }
-            
     
-            case "month": {
-                const date = new Date();
-                const year = date.getFullYear();
-                const month = date.getMonth() + 1;
-                
-                // Tạo danh sách ngày trong tháng
-                const daysInMonth = new Date(year, month, 0).getDate();
-                const result = Array.from({ length: daysInMonth }, (_, i) => ({
-                    year,
-                    month,
-                    date: i + 1,
-                    expense: 0,
-                    income: 0,
-                }));
-    
-                // Duyệt qua transactions để gán vào từng ngày tương ứng
-                transactions.forEach((t) => {
-                    const transDate = new Date(t.datetime);
-                    const transDay = transDate.getDate();
-    
-                    const index = transDay - 1;
-                    if (index >= 0 && index < daysInMonth) {
-                        if (t.type === "Thu nhập") {
-                            result[index].income += Number(t.money);
-                        } else {
-                            result[index].expense += Number(t.money);
-                        }
-                    }
-                });
-    
-                return result;
-            }
-    
-            case "year": {
-                const year = new Date().getFullYear();
-                const result = Array.from({ length: 12 }, (_, i) => ({
-                    year,
-                    month: i + 1,
-                    expense: 0,
-                    income: 0,
-                }));
-    
-                transactions.forEach((t) => {
-                    const transDate = new Date(t.datetime);
-                    const transMonth = transDate.getMonth();
-    
-                    if (transDate.getFullYear() === year) {
-                        if (t.type === "Thu nhập") {
-                            result[transMonth].income += Number(t.money);
-                        } else {
-                            result[transMonth].expense += Number(t.money);
-                        }
-                    }
-                });
-    
-                return result;
-            }
-    
-            default:
-                return [];
-        }
-    };
+interface BarChartsProps {
+    date?: Date | number;
+    expense?: number;
+    income?: number;
+    year?: number;
+    month?: number;
+}
     
 
-export const BarCharts: React.FC<{ transactions: Transaction[]; tf: Timeframe }> = ({ transactions, tf }) => {
-    const [timeframe, setTimeframe] = useState<Timeframe>(tf);
-    const data = formattedBarData(transactions, 'latest');
+export const BarCharts: React.FC<{ data: BarChartsProps[], timeframe: Timeframe }> = ({ data, timeframe }) => {
+
     
     return (
         <div className={cn(
@@ -170,6 +71,7 @@ export const BarCharts: React.FC<{ transactions: Transaction[]; tf: Timeframe }>
                     return new Date(year, month - 1, date || 1).toLocaleDateString("default", { day: "2-digit" });
                 }
                 if (timeframe === "latest") {
+                    // console.log(data);                    
                     return new Date(data.date).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
                 }
                 return "";
@@ -220,7 +122,7 @@ export const BarCharts: React.FC<{ transactions: Transaction[]; tf: Timeframe }>
 };
 
 const CustomTooltip: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
-    if (!active || !payload || payload.length < 2) return null;
+    if (!active || !payload || payload.length < 2) { return null; }
 
     return (
         <div className="bg-teal-50 p-2 rounded-2xl shadow-md border">
@@ -235,49 +137,7 @@ import { PieChart, Pie, Cell } from "recharts";
 
 
 
-const formattedPieData = (transactions: Transaction[], timeframe: Timeframe) => {
-    // Lọc giao dịch theo timeframe nếu cần
-    let filteredTransactions = transactions;
-    
-    if (timeframe === "latest") {
-        const today = new Date();
-        const lastWeek = new Date();
-        lastWeek.setDate(today.getDate() - 6);
-        lastWeek.setHours(0,0,0,0)
 
-        filteredTransactions = transactions.filter((t) => {
-            const transDate = new Date(t.datetime);
-            return transDate >= lastWeek && transDate <= today;
-        });
-    }
-
-    if (timeframe === "month") {
-        const today = new Date();
-        const currentMonth = today.getMonth();
-        const currentYear = today.getFullYear();
-
-        filteredTransactions = transactions.filter((t) => {
-            const transDate = new Date(t.datetime);
-            return transDate.getMonth() === currentMonth && transDate.getFullYear() === currentYear;
-        });
-    }
-
-    // Gom nhóm theo danh mục (ăn uống, giải trí, ...)
-    const categoryMap = new Map<string, { name: string; money: number; type: string }>();
-
-    filteredTransactions.forEach(({ categoryID, money, type }) => {
-        if (!categoryMap.has(categoryID.name)) {
-            categoryMap.set(categoryID.name, {
-                name: categoryID.name,
-                money: 0,
-                type: type,
-            });
-        }
-        categoryMap.get(categoryID.name)!.money += Number(money);
-    });
-
-    return Array.from(categoryMap.values());
-};
 const COLORS = [
     // Expenses: Đỏ, Cam, Vàng, Hồng, Tím
     "#ef4444", "#f97316", "#faaa15", "#ec4899", "#8b5cf6",
@@ -287,9 +147,13 @@ const COLORS = [
 
 ];
 
-export const PieCharts: React.FC<{ transactions: Transaction[]; tf: Timeframe }> = ({ transactions, tf }) => { 
-    const [timeframe, setTimeframe] = useState(tf);
-    const data = formattedPieData(transactions, timeframe);
+interface PieChartsProps {
+    name: string;
+    money: number;
+    type: string;
+}
+
+export const PieCharts: React.FC<{ data: PieChartsProps[]  }> = ({data}) => { 
 
     return (
         <div className="w-1/2 flex flex-col items-center justify-center p-4 bg-white shadow-lg rounded-lg">
@@ -315,8 +179,18 @@ export const PieCharts: React.FC<{ transactions: Transaction[]; tf: Timeframe }>
                                 key={`cell-${index}`}
                                 fill={COLORS[index % COLORS.length]}
                                 style={{ filter: "brightness(1)" }}
-                                onMouseEnter={(e) => ((e.currentTarget as unknown) as SVGElement).style.filter = "brightness(1.2)"}
-                                onMouseLeave={(e) => ((e.currentTarget as unknown) as SVGElement).style.filter = "brightness(1)"}
+                                onMouseLeave={(e) => {
+                                    const target = e.currentTarget as SVGElement | null;
+                                    if (target) {
+                                        target.style.filter = "brightness(1.2)";
+                                    }
+                                }}
+                                onMouseEnter={(e) => {
+                                    const target = e.currentTarget as SVGElement | null;
+                                    if (target) {
+                                        target.style.filter = "brightness(1.0)";
+                                    }
+                                }}
                             />
                         ))}
                     </Pie>

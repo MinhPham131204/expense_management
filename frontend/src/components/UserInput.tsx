@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Send, ChevronsUpDown, Check } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import TransactionConfirmationPopup from "./TransactionConfirmationPopup";
-import { SubCategory, TransactionType } from "@/lib/types";
+import { SubCategory, TransactionType, Transaction } from "@/lib/types";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -70,7 +70,7 @@ function parseTransaction(input: string) {
   const regex = /(?:(hôm qua|hôm kia|ngày mai|ngày mốt|\d{1,2}\/\d{1,2})\s*)?([\d,.km]+)\s*(.+)/i;
   
   const match = input.match(regex);
-  if (!match) return null;
+  if (!match) { return null; }
 
   const [, datePart, moneyStr, description] = match;
   let date = new Date(today); // Mặc định là hôm nay
@@ -78,10 +78,10 @@ function parseTransaction(input: string) {
   //console.log(datePart);
   
   if (datePart) {
-    if (datePart === "hôm qua") date.setDate(today.getDate() - 1);
-    else if (datePart === "hôm kia") date.setDate(today.getDate() - 2);
-    else if (datePart === "ngày mai") date.setDate(today.getDate() + 1);
-    else if (datePart === "ngày mốt") date.setDate(today.getDate() + 2);
+    if (datePart === "hôm qua") { date.setDate(today.getDate() - 1); }
+    else if (datePart === "hôm kia") { date.setDate(today.getDate() - 2); }
+    else if (datePart === "ngày mai") { date.setDate(today.getDate() + 1); } 
+    else if (datePart === "ngày mốt") { date.setDate(today.getDate() + 2); }
     else if (datePart.includes("/")) {
       
       const parts = datePart.split("/").map(Number);
@@ -99,18 +99,149 @@ function parseTransaction(input: string) {
   const moneyStrNew = moneyStr.toLowerCase().replace(/[,vnđ]/g, "").trim();
   let money = parseFloat(moneyStrNew);
   
-  if (moneyStrNew.includes("k")) money *= 1000;
-  if (moneyStrNew.includes("m")) money *= 1000000;
+  if (moneyStrNew.includes("k")) { money *= 1000; }
+  if (moneyStrNew.includes("m")) { money *= 1000000; }
 
   return { date: date, money, description: description.trim() };
 }
 
-const UserInput: React.FC<{categories: SubCategory[]}> = ({categories}) => {
+
+function extractInfo(text: string) {
+  // Extract date information first
+  const datePattern = /(?:ngày\s*)?(\d{1,2})[/-](\d{1,2})(?:[/-]\d{4})?|\b(\d{1,2})\s*tháng\s*(\d{1,2})\b/i;
+  const dateMatch = text.match(datePattern);
+
+  let dateStr = null;
+  const now = new Date();
+
+  if (dateMatch) {
+      const day = dateMatch[1] || dateMatch[3];
+      const month = dateMatch[2] || dateMatch[4];
+      const year = now.getFullYear();
+      dateStr = `${String(parseInt(day)).padStart(2, '0')}/${String(parseInt(month)).padStart(2, '0')}/${year}`;
+  } else {
+      const monthOnlyPattern = /tháng\s+(\d{1,2})/i;
+      const monthMatch = text.match(monthOnlyPattern);
+      if (monthMatch) {
+          const month = parseInt(monthMatch[1]);
+          const day = now.getDate();
+          const year = now.getFullYear();
+          dateStr = `${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}/${year}`;
+      } else {
+          dateStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}/${now.getFullYear()}`;
+      }
+  }
+
+  // Extract money amount with improved pattern
+  const moneyPattern = /(\d+(?:[.,]\d{3})*(?:[.,]\d+)?|\d+)\s*(k|nghìn|ngàn|tr|triệu|m|vnđ|đồng)?(?:\s*\/?\w*)?/gi;
+  const moneyWithPhrasePattern = /(?:số tiền|giá|chi phí|tổng chi phí)\s*(\d+(?:[.,]\d{3})*(?:[.,]\d+)?|\d+)\s*(k|nghìn|ngàn|tr|triệu|m|vnđ|đồng)?(?:\s*\/?\w*)?/i;
+  const numberWordPattern = /(?:(\d+)\s*(triệu|nghìn|ngàn|m))/i;
+
+  let amount = 0;
+
+  // Try specific phrase pattern first
+  const moneyWithPhrase = text.match(moneyWithPhrasePattern);
+  if (moneyWithPhrase) {
+      const value = moneyWithPhrase[1];
+      const unit = moneyWithPhrase[2];
+      let cleanValue = value.replace(/,/g, ".");
+      if ((cleanValue.match(/\./g) || []).length > 1) {
+          cleanValue = cleanValue.replace(/\.(?=.*\.)/g, "");
+      }
+      try {
+          let numericValue = parseFloat(cleanValue);
+          if (unit) {
+              const unitLower = unit.toLowerCase();
+              if (["k", "nghìn", "ngàn"].includes(unitLower)) {
+                  numericValue *= 1000;
+              } else if (["tr", "triệu", "m"].includes(unitLower)) {
+                  numericValue *= 1000000;
+              }
+          }
+          amount = Math.floor(numericValue);
+      } catch (e) {
+          // Ignore ValueError equivalent
+      }
+  } else {
+      // Try number word pattern (e.g., "3 triệu", "5 ngàn", "2 m")
+      const numberWordMatch = text.match(numberWordPattern);
+      if (numberWordMatch) {
+          const value = numberWordMatch[1];
+          const unit = numberWordMatch[2];
+          try {
+              let numericValue = parseFloat(value);
+              const unitLower = unit.toLowerCase();
+              if (["nghìn", "ngàn"].includes(unitLower)) {
+                  numericValue *= 1000;
+              } else if (["tr", "triệu", "m"].includes(unitLower)) {
+                  numericValue *= 1000000;
+              }
+              amount = Math.floor(numericValue);
+          } catch (e) {
+              // Ignore ValueError equivalent
+          }
+      } else {
+          // Fallback to general money pattern
+          const moneyMatches = [...text.matchAll(moneyPattern)];
+          for (const match of moneyMatches) {
+              const value = match[1];
+              const unit = match[2];
+              const start = match.index;
+              const end = start + match[0].length;
+              const contextBefore = start > 0 ? text.slice(0, start).split(/\s+/).slice(-3) : [];
+              const contextAfter = end < text.length ? text.slice(end).split(/\s+/).slice(0, 3) : [];
+              const contextStr = [...contextBefore, ...contextAfter].join(" ").toLowerCase();
+
+              // Skip if it’s a per-unit cost (e.g., "200k/tháng") but allow if it’s the main amount
+              if (contextStr.includes("/tháng") || contextStr.includes("/người")) {
+                  continue;
+              }
+              // Only skip numbers without units if they look like part of a date
+              if (!unit && /^\d+[/-]\d+/.test(text.trim()) && text.split(/\s+/)[0].includes(value)) {
+                  continue;
+              }
+              if (!unit && (text.toLowerCase().includes(`tháng ${value}`) || text.toLowerCase().includes(`tháng${value}`))) {
+                  continue;
+              }
+              if (!unit && contextBefore.includes("ngày") && /^\d+$/.test(value)) {
+                  continue;
+              }
+
+              let cleanValue = value.replace(/,/g, ".");
+              if ((cleanValue.match(/\./g) || []).length > 1) {
+                  cleanValue = cleanValue.replace(/\.(?=.*\.)/g, "");
+              }
+              try {
+                  let numericValue = parseFloat(cleanValue);
+                  if (unit) {
+                      const unitLower = unit.toLowerCase();
+                      if (["k", "nghìn", "ngàn"].includes(unitLower)) {
+                          numericValue *= 1000;
+                      } else if (["tr", "triệu", "m"].includes(unitLower)) {
+                          numericValue *= 1000000;
+                      }
+                  }
+                  amount = Math.floor(numericValue);
+                  break; // Only take the first valid money amount
+              } catch (e) {
+                  continue;
+              }
+          }
+      }
+  }
+
+  return [dateStr, amount];
+}
+
+
+const UserInput: React.FC<{categories: SubCategory[], transactions: Transaction[], setTransData: (transactions: Transaction[]) => void}> = ({categories, transactions, setTransData}) => {
   const [text, setText] = useState("");
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState<string | null>(null);
   const [chose, setChose] = useState(false);
-   
+  const [type, setType] = useState("Chi tiêu");
+  const [category, setCategory] = useState('Chưa rõ')
+
   const [popupData, setPopupData] = useState<{
     money: number; 
     date: Date;
@@ -119,11 +250,28 @@ const UserInput: React.FC<{categories: SubCategory[]}> = ({categories}) => {
     type: string;
   } | null>(null);
 
-  useEffect(() => {
-    if(!chose && text.trim()!=="") setValue(getCategory(text).name)
-  }, [text, chose])
+  const handleChange = async () => {
+    if (!chose && text?.trim() !== "") {
+      const res = await axios.post('http://localhost:5000/predict', {
+        description: text
+      }, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      console.log(res.data);
+      
+      const lst = res.data.prediction.split('@')
+      setCategory(lst[1].trim())
+      setValue(lst[1].trim())
+      setType(lst[0].trim() === 'expense' ? 'Chi tiêu' : 'Thu nhập')
+    }
+  }
 
-  const handleSubmit = (e?: React.KeyboardEvent | React.MouseEvent) => {
+  
+
+  const handleSubmit = async (e?: React.KeyboardEvent | React.MouseEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -131,37 +279,36 @@ const UserInput: React.FC<{categories: SubCategory[]}> = ({categories}) => {
     
     const input = text.trim();
     
-    if (!input) return;
+    if (!input) { return; }
 
-    const transaction = parseTransaction(input);
-    if (!transaction) return;
+    const [date, money] = extractInfo(input);
+    console.log('date + money: ' +  date, money);
 
-    const category = getCategory(transaction.description);
-
-    // console.log(category);
-    
-
-    if(chose && value !== null) category.name = value
-
+    // console.log(new Date(date));
+    const slt = (date as string).split('/')
 
     
-    // console.log(category.name, category.type);
-    
+
     setPopupData({
-      ...transaction,
-      category: category.name,
-      type: category.type,
+      money: Number(money) || 0,
+      date: new Date(Number(slt[2]), Number(slt[1]) - 1, Number(slt[0])),
+      description: input,
+      category: chose ? value as string : category,
+      type: type,
     });
+
+    
       
   };
 
   const handleConfirmPopup = async () => {
-    if (!popupData) return;
+    if (!popupData) { return; }
 
     if (popupData.category === "Chưa rõ") {
       toast.warning("Không thể xác định danh mục giao dịch hiện tại! Vui lòng chọn thủ công");
       return;
     }
+
 
     const formData = {
       money: popupData.money.toString(),
@@ -175,10 +322,17 @@ const UserInput: React.FC<{categories: SubCategory[]}> = ({categories}) => {
       setPopupData(null)
       setText('')
       console.log(formData);
-      await axios.post("http://localhost:3000/transaction", formData, {withCredentials: true,})
-      .then((response) => console.log(response))
-      .catch((error) => console.log(error))
-      window.location.reload();
+      const res = await axios.post("http://localhost:3000/transaction?year=2025", formData, {withCredentials: true,})
+      console.log(transactions);
+      console.log(res.data);
+      console.log([...transactions, res.data]);
+      
+      
+      
+      setTransData([...transactions, res.data])
+   
+
+      
 
 
       toast.success("Giao dịch thực hiện thành công!!")
@@ -206,7 +360,11 @@ const UserInput: React.FC<{categories: SubCategory[]}> = ({categories}) => {
             id="inputField"
             type="text"
             value={text}
-            onChange={(event) => setText(event.target.value)}
+            onChange={(event) => {
+              setText(event.target.value)
+              handleChange()
+              }
+            }
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 handleSubmit(e);
