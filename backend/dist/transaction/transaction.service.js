@@ -22,6 +22,12 @@ let TransactionService = class TransactionService {
     constructor(transactionModel) {
         this.transactionModel = transactionModel;
     }
+    async getTransactions(userID, year) {
+        const arr = await this.transactionModel.find({ userID, datetime: { $gte: new Date(year, 0, 1), $lt: new Date(year + 1, 0, 1) } }).populate('categoryID').exec();
+        const income = arr.reduce((acc, cur) => cur.type === 'Thu nhập' ? acc + parseInt(cur.money) : acc, 0);
+        const expense = arr.reduce((acc, cur) => cur.type === 'Chi tiêu' ? acc + parseInt(cur.money) : acc, 0);
+        return { income, expense, difference: income - expense, transactions: arr };
+    }
     async getTransactionsInMonth(userID, month, year) {
         const arr = await this.transactionModel.find({ userID, datetime: { $gte: new Date(year, month - 1, 1), $lt: new Date(year, month, 1) } }).populate('categoryID').exec();
         const income = arr.reduce((acc, cur) => cur.type === 'Thu nhập' ? acc + parseInt(cur.money) : acc, 0);

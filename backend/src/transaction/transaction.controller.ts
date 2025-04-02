@@ -9,6 +9,14 @@ import { TransactionService } from './transaction.service';
 @Controller('transaction')
 export class TransactionController {
     constructor(private readonly transactionService: TransactionService) {}
+    
+    @Get()
+    async getTransactions(
+        @Req() request: Request,
+        @Query('year', new DefaultValuePipe(new Date().getFullYear()), ParseIntPipe) year: number,
+    ) {
+        return this.transactionService.getTransactions(request.cookies['token'], year);
+    }
 
     @Get('allInMonth')
     async getTransactionsInMonth(
@@ -18,6 +26,7 @@ export class TransactionController {
     ) {
         return this.transactionService.getTransactionsInMonth(request.cookies['token'], month, year);
     }
+
 
     @Post()
     async createTransaction(
