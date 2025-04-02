@@ -50,18 +50,18 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
       const { startDate, endDate, type, minAmount, maxAmount, category, keyword } = filters;
   
       const transactionDate = new Date(transaction.datetime);
-      if (startDate && transactionDate < new Date(startDate)) return false;
-      if (endDate && transactionDate > new Date(endDate)) return false;
+      if (startDate && transactionDate < new Date(startDate)) { return false; }
+      if (endDate && transactionDate > new Date(endDate)) { return false; }
   
-      if (type.length > 0 && !type.includes(transaction.type)) return false;
+      if (type.length > 0 && !type.includes(transaction.type)) { return false; }
   
       const money = parseFloat(transaction.money);
-      if (minAmount && money < parseFloat(minAmount)) return false;
-      if (maxAmount && money > parseFloat(maxAmount)) return false;
+      if (minAmount && money < parseFloat(minAmount)) { return false; }
+      if (maxAmount && money > parseFloat(maxAmount)) { return false; }
   
-      if (category && transaction.categoryID.name !== category) return false;
+      if (category && transaction.categoryID.name !== category) { return false; }
   
-      if (keyword && !transaction.description.toLowerCase().includes(keyword.toLowerCase())) return false;
+      if (keyword && !transaction.description.toLowerCase().includes(keyword.toLowerCase())) { return false; }
   
       return true;
     });
@@ -103,8 +103,8 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
           bVal = b[sortConfig.key];
         }
   
-        if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
-        if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
+        if (aVal < bVal) { return sortConfig.direction === "asc" ? -1 : 1; }
+        if (aVal > bVal) { return sortConfig.direction === "asc" ? 1 : -1; }
         return 0;
       });
     }
@@ -124,7 +124,9 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/transaction/allInMonth?month=3&year=2025", { withCredentials: true });
+        const response = await axios.get("http://localhost:3000/transaction?year=2025", { withCredentials: true });
+        console.log(response.data.transactions);
+        
         setTransactions(response.data.transactions);
         const categories = response.data.transactions
           .filter((t: Transaction) => t.categoryID && typeof t.categoryID.name === "string")
@@ -178,7 +180,7 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
   };
 
   const getSortIndicator = (key: keyof Transaction) => {
-    if (!sortConfig || sortConfig.key !== key) return null;
+    if (!sortConfig || sortConfig.key !== key) { return null; }
     return sortConfig.direction === "asc" ? " ▲" : " ▼";
   };
   
@@ -222,8 +224,8 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
               paginatedTransactions.map((transaction) => (
                 <TableRow key={transaction._id.toString()} className={cn(darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100", "font-medium") }>
                   <TableCell className="font-medium">{transaction.categoryID.name}</TableCell>
-                  <TableCell>{transaction.description}</TableCell>
-                  <TableCell>{new Date(transaction.datetime).toLocaleDateString()}</TableCell>
+                  <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis min-w-[120px] max-w-[120px]">{transaction.description}</TableCell>
+                  <TableCell>{new Date(transaction.datetime).toLocaleDateString('en-GB')}</TableCell>
                   <TableCell className={cn(transaction.type === "Thu nhập" ? "text-emerald-500" : "text-red-400")}>
                     {transaction.type}
                   </TableCell>
@@ -242,7 +244,7 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
           </TableBody>
         </Table>
 
-        <div className="flex justify-center space-x-2">
+        <div className="flex justify-center items-center  space-x-8">
           <Button 
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} 
             disabled={currentPage === 1}

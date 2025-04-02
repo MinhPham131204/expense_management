@@ -39,7 +39,7 @@ const TransactionConfirmationPopup = forwardRef<HTMLDivElement, TransactionConfi
       }
     });
 
-    if (!popupData) return null;
+    if (!popupData) { return null; }
 
     return (
       <Dialog open={!!popupData} onOpenChange={onClose}>
@@ -78,8 +78,8 @@ const TransactionConfirmationPopup = forwardRef<HTMLDivElement, TransactionConfi
                       <FormControl>
                         <div className="col-span-3 p-2 dark:bg-black bg-gray-100 rounded">
                           {field.value instanceof Date
-                            ? field.value.toLocaleDateString("vi-VN")
-                            : new Date(field.value).toLocaleDateString("vi-VN")}
+                            ? field.value.toLocaleDateString("en-GB")
+                            : new Date(field.value).toLocaleDateString("en-GB")}
                         </div>
                       </FormControl>
                     </FormItem>
