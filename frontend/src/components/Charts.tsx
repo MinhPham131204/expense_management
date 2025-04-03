@@ -155,6 +155,9 @@ interface PieChartsProps {
 
 export const PieCharts: React.FC<{ data: PieChartsProps[]  }> = ({data}) => { 
 
+    // console.log(data);
+    
+
     return (
         <div className="w-1/2 flex flex-col items-center justify-center p-4 bg-white shadow-lg rounded-lg">
             <h3 className="text-lg font-semibold text-gray-700 mb-2">📊 Phân bổ thu nhập & chi tiêu</h3>

@@ -8,20 +8,26 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 import axios from "axios";
-import { SubCategory, Transaction } from "@/lib/types";
+import { SubCategory, Transaction, Category } from "@/lib/types";
 import { toast } from "sonner";
-interface Category {
-  _id: string;
-  name: string;
-  subCategory: SubCategory[];
-}
+// interface Category {
+//   _id: string;
+//   name: string;
+//   subCategory: SubCategory[];
+// }
+
 
 const Budget = () => {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(format(new Date(), "MMMM yyyy"));
 
+  
+  // Set the date format to "MM/yyyy" for Vietnamese locale
+  const [currentMonth, setCurrentMonth] = useState(
+    format(new Date(), "MM/yyyy", { locale: vi })
+  );
 
   const [budget, setBudget] = useState([])
   const [transactions, setTransactions] = useState([])
@@ -46,7 +52,7 @@ const Budget = () => {
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/transaction/allInMonth?month=3&year=2025", { withCredentials: true });
+        const response = await axios.get("http://localhost:3000/transaction/allInMonth?month=4&year=2025", { withCredentials: true });
         setTransactions(response.data.transactions);
         console.log("Transactions response:", response);
         
@@ -58,7 +64,7 @@ const Budget = () => {
     }, []);
   
 
-    console.log(budget);
+    // console.log(budget);
 
 
     useEffect(() => {
@@ -92,19 +98,17 @@ const Budget = () => {
   
   // Sample budget data
   const budgetData = {
-    income: 5200,
-    expenses: 3750,
-    remaining: 1450,
+    income: 5200000,
+    expenses: 3750000,
+    remaining: 1450000,
     categories: [
-      { name: "Housing", budget: 1500, spent: 1500, icon: "🏠", type: "expense" },
-      { name: "Food", budget: 800, spent: 650, icon: "🍔", type: "expense" },
-      { name: "Transportation", budget: 400, spent: 380, icon: "🚗", type: "expense" },
-      { name: "Entertainment", budget: 300, spent: 250, icon: "🎬", type: "expense" },
-      { name: "Utilities", budget: 250, spent: 230, icon: "💡", type: "expense" },
-      { name: "Shopping", budget: 400, spent: 340, icon: "🛍️", type: "expense" },
-      { name: "Miscellaneous", budget: 300, spent: 200, icon: "📦", type: "expense" },
-      { name: "Salary", budget: 5000, received: 5000, icon: "💼", type: "income" },
-      { name: "Freelance", budget: 200, received: 200, icon: "💻", type: "income" },
+      { name: "Tiền thuê nhà", budget: 1500000, spent: 0, icon: "🏠", type: "expense" },
+      { name: "Ăn uống", budget: 1600000, spent: 300000, icon: "🍔", type: "expense" },
+      { name: "Di chuyển", budget: 400000, spent: 380000, icon: "🚗", type: "expense" },
+      { name: "Giải trí", budget: 300000, spent: 250000, icon: "🎬", type: "expense" },
+      { name: "Mua sắm", budget: 400000, spent: 340000, icon: "🛍️", type: "expense" },
+      { name: "Lương", budget: 5000000, received: 5000000, icon: "💼", type: "income" },
+      { name: "Thu hồi nợ", budget: 200000, received: 120000, icon: "💻", type: "income" },
     ]
   };
 
@@ -139,14 +143,6 @@ const Budget = () => {
         <div className="max-w-6xl mx-auto">
           <header className="mb-8">
             <div className="flex items-center justify-between">
-              <motion.h1 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                className="text-3xl font-bold tracking-tight"
-              >
-                Budget Dashboard
-              </motion.h1>
               
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -174,10 +170,10 @@ const Budget = () => {
                   <ArrowUpCircle className="text-green-500" />
                   Income
                 </CardTitle>
-                <CardDescription>Total income for {currentMonth}</CardDescription>
+                <CardDescription>Tổng thu nhập cho {currentMonth}</CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
-                <div className="text-3xl font-bold">${budgetData.income.toLocaleString()}</div>
+                <div className="text-3xl font-bold">{budgetData.income.toLocaleString()} VND</div>
               </CardContent>
             </Card>
             
@@ -187,10 +183,10 @@ const Budget = () => {
                   <ArrowDownCircle className="text-red-500" />
                   Expenses
                 </CardTitle>
-                <CardDescription>Total expenses for {currentMonth}</CardDescription>
+                <CardDescription>Tổng chi tiêu cho {currentMonth}</CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
-                <div className="text-3xl font-bold">${budgetData.expenses.toLocaleString()}</div>
+                <div className="text-3xl font-bold">{budgetData.expenses.toLocaleString()} VND</div>
               </CardContent>
             </Card>
             
@@ -200,10 +196,10 @@ const Budget = () => {
                   <Wallet className="text-blue-500" />
                   Remaining
                 </CardTitle>
-                <CardDescription>Available budget for {currentMonth}</CardDescription>
+                <CardDescription>Ngân sách còn lại cho {currentMonth}</CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
-                <div className="text-3xl font-bold">${budgetData.remaining.toLocaleString()}</div>
+                <div className="text-3xl font-bold">{budgetData.remaining.toLocaleString()} VND</div>
               </CardContent>
             </Card>
           </motion.div>
@@ -234,9 +230,9 @@ const Budget = () => {
                   <h2 className="text-xl font-semibold">Expense Categories</h2>
                   <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
-                      <Button size="sm" className="gap-2">
+                      <Button size="sm" className="text-black gap-2">
                         <PlusSquare className="w-4 h-4" />
-                        Add Category
+                        <span className="text-black">Add Category</span>
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
@@ -279,7 +275,7 @@ const Budget = () => {
                                 {category.name}
                               </CardTitle>
                               <span className="text-sm font-medium text-muted-foreground">
-                                ${category.spent.toLocaleString()} / ${category.budget.toLocaleString()}
+                                {category.spent.toLocaleString()} VND / {category.budget.toLocaleString()} VND
                               </span>
                             </div>
                           </CardHeader>
@@ -298,7 +294,7 @@ const Budget = () => {
                               />
                               <div className="flex justify-between text-xs text-muted-foreground">
                                 <span>{Math.round((category.spent / category.budget) * 100)}% used</span>
-                                <span>${category.budget - category.spent} remaining</span>
+                                <span>{category.budget - category.spent} VND remaining</span>
                               </div>
                             </div>
                           </CardContent>
@@ -358,7 +354,7 @@ const Budget = () => {
                                 {category.name}
                               </CardTitle>
                               <span className="text-sm font-medium text-muted-foreground">
-                                ${category.received.toLocaleString()} / ${category.budget.toLocaleString()}
+                                {category.received.toLocaleString()} VND / {category.budget.toLocaleString()} VND
                               </span>
                             </div>
                           </CardHeader>
@@ -373,8 +369,8 @@ const Budget = () => {
                                 <span>{Math.round((category.received / category.budget) * 100)}% received</span>
                                 <span>
                                   {category.received >= category.budget
-                                    ? "$0 remaining"
-                                    : `$${category.budget - category.received} expected`}
+                                    ? "0 VND remaining"
+                                    : `${category.budget - category.received} VND expected`}
                                 </span>
                               </div>
                             </div>
@@ -390,9 +386,9 @@ const Budget = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <TrendingUp className="w-5 h-5" />
-                      Budget Overview
+                      Tổng quan về ngân sách
                     </CardTitle>
-                    <CardDescription>Summary of your budget for {currentMonth}</CardDescription>
+                    <CardDescription>Tóm tắt vấn đề ngân sách trong {currentMonth}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="grid gap-6 md:grid-cols-2">
@@ -403,8 +399,7 @@ const Budget = () => {
                           <div className="text-sm text-muted-foreground">Budget health score</div>
                         </div>
                         <div className="mt-4 text-sm text-muted-foreground">
-                          Your budget is in good shape. You're spending within your means and have
-                          saved {Math.round((budgetData.remaining / budgetData.income) * 100)}% of your income.
+                        Ngân sách hiện tại bạn đang thực hiện vẫn đang đi đúng theo lộ trình tiết kiệm {Math.round((budgetData.remaining / budgetData.income) * 100)}% từ thu nhập của bạn.
                         </div>
                       </div>
                       
@@ -413,7 +408,7 @@ const Budget = () => {
                         <div className="space-y-4">
                           {budgetData.categories
                             .filter(cat => cat.type === "expense")
-                            .slice(0, 4)
+                            // .slice(0, 4)
                             .map(category => (
                               <div key={category.name} className="flex items-center gap-2">
                                 <span className="text-xl" role="img">{category.icon}</span>
@@ -421,7 +416,7 @@ const Budget = () => {
                                   <div className="flex items-center justify-between mb-1">
                                     <span className="text-sm font-medium">{category.name}</span>
                                     <span className="text-sm text-muted-foreground">
-                                      ${category.spent.toLocaleString()}
+                                      {category.spent.toLocaleString()} VND
                                     </span>
                                   </div>
                                   <Progress
@@ -431,9 +426,9 @@ const Budget = () => {
                                 </div>
                               </div>
                             ))}
-                          <Button variant="ghost" className="w-full text-sm" size="sm">
+                          {/* <Button variant="ghost" className="w-full text-sm" size="sm">
                             View all categories
-                          </Button>
+                          </Button> */}
                         </div>
                       </div>
                     </div>

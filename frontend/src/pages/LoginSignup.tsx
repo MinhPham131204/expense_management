@@ -68,7 +68,7 @@ const LoginSignup = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen min-w-screen bg-gradient-to-r from-[#7695b5] via-[#295346] to-[#050505]">
+    <div className="flex items-center justify-center min-h-screen min-w-screen bg-gradient-to-r from-[#355371] via-[#5d9c88] to-[#5bb6cd]">
       <div className="relative bg-transparent w-[768px] max-w-full min-w-[42%] min-h-[560px] rounded-[30px] shadow-lg shadow-[#93b0b5] overflow-hidden">
         <div
           className={`absolute top-0 h-full w-1/2 transition-all duration-500 ${
