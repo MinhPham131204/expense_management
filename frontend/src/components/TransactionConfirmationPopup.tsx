@@ -41,6 +41,9 @@ const TransactionConfirmationPopup = forwardRef<HTMLDivElement, TransactionConfi
 
     if (!popupData) { return null; }
 
+    console.log(popupData);
+    
+
     return (
       <Dialog open={!!popupData} onOpenChange={onClose}>
         <DialogContent ref={ref} className="sm:max-w-[425px]">

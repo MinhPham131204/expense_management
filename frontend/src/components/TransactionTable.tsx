@@ -32,7 +32,7 @@ interface TransactionTableProps {
 
 const TransactionTable = ({ timeframe }: TransactionTableProps) => {
   const [transactions, setTransactions] = useState<Transaction[]>(sampleData);
-  const [sortConfig, setSortConfig] = useState<SortConfig>(null);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "datetime", direction: "desc" });
   const [darkMode, setDarkMode] = useState(false);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [filters, setFilters] = useState({

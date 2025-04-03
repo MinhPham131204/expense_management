@@ -118,7 +118,7 @@ function extractInfo(text: string) {
       const day = dateMatch[1] || dateMatch[3];
       const month = dateMatch[2] || dateMatch[4];
       const year = now.getFullYear();
-      dateStr = `${String(parseInt(day)).padStart(2, '0')}/${String(parseInt(month)).padStart(2, '0')}/${year}`;
+      dateStr = `${String(parseInt(month)).padStart(2, '0')}/${String(parseInt(day)).padStart(2, '0')}/${year}`;
   } else {
       const monthOnlyPattern = /tháng\s+(\d{1,2})/i;
       const monthMatch = text.match(monthOnlyPattern);
@@ -251,7 +251,7 @@ const UserInput: React.FC<{categories: SubCategory[], transactions: Transaction[
   } | null>(null);
 
   const handleChange = async () => {
-    if (!chose && text?.trim() !== "") {
+    if (!chose && text?.trim().length > 10) {
       const res = await axios.post('http://localhost:5000/predict', {
         description: text
       }, {
@@ -260,7 +260,7 @@ const UserInput: React.FC<{categories: SubCategory[], transactions: Transaction[
           'Content-Type': 'application/json'
         }
       })
-      console.log(res.data);
+      //console.log(res.data);
       
       const lst = res.data.prediction.split('@')
       setCategory(lst[1].trim())
@@ -291,7 +291,7 @@ const UserInput: React.FC<{categories: SubCategory[], transactions: Transaction[
 
     setPopupData({
       money: Number(money) || 0,
-      date: new Date(Number(slt[2]), Number(slt[1]) - 1, Number(slt[0])),
+      date: new Date(Number(slt[2]), Number(slt[0]) - 1, Number(slt[1])),
       description: input,
       category: chose ? value as string : category,
       type: type,
@@ -372,7 +372,7 @@ const UserInput: React.FC<{categories: SubCategory[], transactions: Transaction[
             }}
             placeholder="Nhập nội dung... Eg. 10/6 106k về quê"
             style={{ fontSize: "1.5rem" }}
-            className="w-full px-4 py-6 placeholder:text-2xl border-2 border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-500 transition-all pr-16"
+            className="w-full px-4 py-6 placeholder:text-2xl placeholder:text-gray-700 border-2 border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-500 transition-all pr-16"
           />
           <button
             onClick={(e) => handleSubmit(e)}

@@ -85,10 +85,10 @@ const Dashboard = () => {
     }
   }, [transData, categories]);
 
-  useEffect(() => {
-    console.log('change');
+  // useEffect(() => {
+  //   console.log('change', transData);
     
-  }, [transData])
+  // }, [transData])
 
   if (loading) {
     return (
@@ -162,7 +162,7 @@ const Dashboard = () => {
                   const result = Array.from({ length: 7 }, (_, i) => {
                       const date = new Date(sevenDaysAgo);
                       date.setDate(sevenDaysAgo.getDate() + i);
-                      console.log(date);
+                      //console.log(date);
                       
                       
               
@@ -173,7 +173,7 @@ const Dashboard = () => {
                       };
                   });
                   
-                  console.log(result);
+                  //console.log(result);
                   
               
                   // Gộp dữ liệu từ transactions vào mảng 7 ngày gần nhất
@@ -196,7 +196,7 @@ const Dashboard = () => {
                       }
                   });
   
-                  console.log(result);
+                  //console.log(result);
                   
               
                   return result;

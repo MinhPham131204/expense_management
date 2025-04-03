@@ -12,3 +12,9 @@ export type Transaction = {
     datetime: string;
     type: TransactionType
 }
+
+export type Category = {
+    _id: string;
+    name: string;
+    subCategory: SubCategory[];
+}

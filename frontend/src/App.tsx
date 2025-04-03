@@ -3,7 +3,7 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import { useAuth } from "@/context/AuthContext";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Transaction, SubCategory } from "@/lib/types";
+import { Transaction, SubCategory, Category } from "@/lib/types";
 
 import LoginSignup from"./pages/LoginSignup";
 import Dashboard from "./pages/Dashboard";
@@ -15,12 +15,27 @@ import './index.css'
 
 const sampleData: Transaction[] = [];
 
+
+
+
 function App(): JSX.Element {
   const { isLoggedIn, setIsLoggedIn } = useAuth();
   const token = sessionStorage.getItem("isLoggedIn") === "true";
 
   const [transactions, setTransactions] = useState<Transaction[]>(sampleData);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<SubCategory[]>([])
+  const [parentCategories, setParentCategories] = useState<Category[]>([])
+
+  // const [categoryTrends, setCategoryTrends] = useState<CategoryTrend[]>([])
+  const [transactionsPeriod, setTransactionsPeriod] = useState<{
+    month: number,
+    year: number, 
+    income: number, 
+    expense: number, 
+    savings: number
+  }[]>([]);
+
 
   const today = new Date()
   const year = today.getFullYear()
@@ -34,19 +49,13 @@ function App(): JSX.Element {
 
   // statistic page
 
-  const [transactionsPeriod, setTransactionsPeriod] = useState<{
-    month: number,
-    year: number, 
-    income: number, 
-    expense: number, 
-    savings: number
-  }[]>([]);
+  
   
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
         const response = await axios.get("http://localhost:3000/transaction?year=2025", { withCredentials: true });
-        console.log(response.data);
+        // console.log(response.data);
         
         setTransactions(response.data.transactions);
         const categories = response.data.transactions
@@ -129,19 +138,14 @@ function App(): JSX.Element {
   
     fetchAllTransactions();
   }, [month, year]);
+
+  // console.log(transactions);
   
-  console.log(transactionsPeriod);
+  
+  // console.log(transactionsPeriod);
 
 
   // categories
-  interface Category {
-    _id: string;
-    name: string;
-    subCategory: SubCategory[];
-  }
-
-  const [categories, setCategories] = useState<SubCategory[]>([])
-  const [parentCategories, setParentCategories] = useState<Category[]>([])
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -169,8 +173,10 @@ function App(): JSX.Element {
     }
   }, [parentCategories]);
 
-  console.log(parentCategories);
-  console.log(categories);
+  // console.log(parentCategories);
+  // console.log(categories);
+
+  
   
   
 
@@ -190,7 +196,7 @@ function App(): JSX.Element {
           <Route path="/login" element={isLoggedIn ? <Navigate to="/" /> : <LoginSignup />} />
           <Route path="/history" element={isLoggedIn ? <History /> : <Navigate to="/login" />} />
           <Route path="/budget" element={isLoggedIn ? <Budget /> : <Navigate to="/login" />} />
-          <Route path="/statistic" element={isLoggedIn ? <Statistic transactionsPeriod={transactionsPeriod} /> : <Navigate to="/login" />} />
+          <Route path="/statistic" element={isLoggedIn ? <Statistic transactions={transactions} categories={categories} transactionsPeriod={transactionsPeriod} /> : <Navigate to="/login" />} />
         </Routes>
       </Router>
     </ThemeProvider>
