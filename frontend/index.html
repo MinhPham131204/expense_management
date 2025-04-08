@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link id="favicon" rel="icon" type="image/svg+xml" href="/cyan.svg" />
+    <script>
+      document.addEventListener("visibilitychange", function () {
+        const favicon = document.getElementById("favicon");
+        if (document.hidden) {
+          favicon.href = "/mint.svg";
+        } else {
+          favicon.href = "/cyan.svg";
+        }
+      });
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Uynex</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
