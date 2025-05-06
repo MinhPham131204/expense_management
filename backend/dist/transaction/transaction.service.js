@@ -16,11 +16,14 @@ exports.TransactionService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
+const budget_schema_1 = require("../schemas/budget.schema");
 const transaction_schema_1 = require("../schemas/transaction.schema");
 let TransactionService = class TransactionService {
     transactionModel;
-    constructor(transactionModel) {
+    budgetModel;
+    constructor(transactionModel, budgetModel) {
         this.transactionModel = transactionModel;
+        this.budgetModel = budgetModel;
     }
     async getTransactions(userID, year) {
         const arr = await this.transactionModel.find({ userID, datetime: { $gte: new Date(year, 0, 1), $lt: new Date(year + 1, 0, 1) } }).populate('categoryID').exec();
@@ -29,13 +32,27 @@ let TransactionService = class TransactionService {
         return { income, expense, difference: income - expense, transactions: arr };
     }
     async getTransactionsInMonth(userID, month, year) {
-        const arr = await this.transactionModel.find({ userID, datetime: { $gte: new Date(year, month - 1, 1), $lt: new Date(year, month, 1) } }).populate('categoryID').exec();
+        let endDate = new Date(year, month, 1);
+        if (month < 1 || month > 12) {
+            throw new common_1.NotFoundException('Tháng không hợp lệ.');
+        }
+        if (month === 12) {
+            endDate = new Date(year + 1, 0, 1);
+        }
+        const arr = await this.transactionModel.find({ userID, datetime: { $gte: new Date(year, month - 1, 1), $lt: endDate } }).populate('categoryID').exec();
         const income = arr.reduce((acc, cur) => cur.type === 'Thu nhập' ? acc + parseInt(cur.money) : acc, 0);
         const expense = arr.reduce((acc, cur) => cur.type === 'Chi tiêu' ? acc + parseInt(cur.money) : acc, 0);
         return { income, expense, difference: income - expense, transactions: arr };
     }
     async createTransaction(userID, type, categoryID, money, description, datetime) {
         const newTransaction = new this.transactionModel({ userID, type, categoryID, money, description, datetime });
+        const budget = await this.budgetModel.findOne({ userID, categoryID, createdTime: { $gte: new Date(new Date(datetime).getFullYear(), new Date(datetime).getMonth(), 1), $lt: new Date(new Date(datetime).getFullYear(), new Date(datetime).getMonth() + 1, 1) } }).exec();
+        if (type === 'Chi tiêu' && budget) {
+            if (parseInt(budget.remaining) - parseInt(money) < 0) {
+                throw new common_1.NotFoundException('Ngân sách không đủ cho giao dịch này.');
+            }
+            await this.budgetModel.findByIdAndUpdate(budget._id, { remaining: parseInt(budget.remaining) - parseInt(money) }, { new: true });
+        }
         return newTransaction.save();
     }
     async deleteTransaction(userID, transactionID) {
@@ -46,11 +63,47 @@ let TransactionService = class TransactionService {
         await this.transactionModel.findByIdAndDelete(transactionID);
         return { message: 'Giao dịch đã được xóa thành công.' };
     }
+    async analyzeTransByYear(userID, year) {
+        const transactions = await this.transactionModel.find({
+            userID,
+            type: 'Chi tiêu',
+            datetime: {
+                $gte: new Date(year, 0, 1),
+                $lt: new Date(year + 1, 0, 1)
+            }
+        }).populate('categoryID').exec();
+        const categoryExpenses = new Map();
+        transactions.forEach(transaction => {
+            const categoryId = transaction.categoryID["_id"] ? transaction.categoryID["_id"].toString() : transaction.categoryID.toString();
+            const categoryName = transaction.categoryID.name || 'Unknown Category';
+            const amount = parseInt(transaction.money);
+            if (categoryExpenses.has(categoryId)) {
+                const current = categoryExpenses.get(categoryId);
+                categoryExpenses.set(categoryId, {
+                    categoryID: categoryId,
+                    categoryName: categoryName,
+                    totalExpense: current.totalExpense + amount
+                });
+            }
+            else {
+                categoryExpenses.set(categoryId, {
+                    categoryID: categoryId,
+                    categoryName: categoryName,
+                    totalExpense: amount
+                });
+            }
+        });
+        const result = Array.from(categoryExpenses.values());
+        result.sort((a, b) => b.totalExpense - a.totalExpense);
+        return result;
+    }
 };
 exports.TransactionService = TransactionService;
 exports.TransactionService = TransactionService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(transaction_schema_1.Transaction.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __param(1, (0, mongoose_1.InjectModel)(budget_schema_1.Budget.name)),
+    __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model])
 ], TransactionService);
 //# sourceMappingURL=transaction.service.js.map

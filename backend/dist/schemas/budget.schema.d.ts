@@ -6,6 +6,7 @@ export declare class Budget {
     userID: User;
     categoryID: Category;
     budget: string;
+    remaining: string;
     createdTime: Date;
 }
 export declare const BudgetSchema: mongoose.Schema<Budget, mongoose.Model<Budget, any, any, any, mongoose.Document<unknown, any, Budget> & Budget & {

@@ -1,7 +1,6 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable prettier/prettier */
 import { Controller, Get, Query, DefaultValuePipe, ParseIntPipe, Post, Body, Req, Delete, Param } from '@nestjs/common';
 import { Request } from 'express';
 import { TransactionService } from './transaction.service';
@@ -25,6 +24,14 @@ export class TransactionController {
         @Query('year', new DefaultValuePipe(new Date().getFullYear()), ParseIntPipe) year: number,
     ) {
         return this.transactionService.getTransactionsInMonth(request.cookies['token'], month, year);
+    }
+
+    @Get('analyze')
+    async analyzeTransByYear(
+        @Req() request: Request,
+        @Query('year', new DefaultValuePipe(new Date().getFullYear()), ParseIntPipe) year: number,
+    ) {
+        return this.transactionService.analyzeTransByYear(request.cookies['token'], year);
     }
 
 

@@ -15,6 +15,11 @@ export declare class TransactionController {
         difference: number;
         transactions: import("../schemas/transaction.schema").Transaction[];
     }>;
+    analyzeTransByYear(request: Request, year: number): Promise<{
+        categoryID: string;
+        categoryName: string;
+        totalExpense: number;
+    }[]>;
     createTransaction(request: Request, type: string, categoryID: string, money: string, description: string, datetime: string): Promise<import("../schemas/transaction.schema").Transaction>;
     deleteTransaction(request: Request, transactionID: string): Promise<{
         message: string;

@@ -1,8 +1,10 @@
 import { Model } from 'mongoose';
+import { BudgetDocument } from 'src/schemas/budget.schema';
 import { Transaction, TransactionDocument } from 'src/schemas/transaction.schema';
 export declare class TransactionService {
     private transactionModel;
-    constructor(transactionModel: Model<TransactionDocument>);
+    private budgetModel;
+    constructor(transactionModel: Model<TransactionDocument>, budgetModel: Model<BudgetDocument>);
     getTransactions(userID: string, year: number): Promise<{
         income: number;
         expense: number;
@@ -19,4 +21,9 @@ export declare class TransactionService {
     deleteTransaction(userID: string, transactionID: string): Promise<{
         message: string;
     }>;
+    analyzeTransByYear(userID: string, year: number): Promise<Array<{
+        categoryID: string;
+        categoryName: string;
+        totalExpense: number;
+    }>>;
 }

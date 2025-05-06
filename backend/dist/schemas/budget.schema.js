@@ -18,6 +18,7 @@ let Budget = class Budget {
     userID;
     categoryID;
     budget;
+    remaining;
     createdTime;
 };
 exports.Budget = Budget;
@@ -33,6 +34,10 @@ __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], Budget.prototype, "budget", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], Budget.prototype, "remaining", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", Date)

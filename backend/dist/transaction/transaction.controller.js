@@ -26,6 +26,9 @@ let TransactionController = class TransactionController {
     async getTransactionsInMonth(request, month, year) {
         return this.transactionService.getTransactionsInMonth(request.cookies['token'], month, year);
     }
+    async analyzeTransByYear(request, year) {
+        return this.transactionService.analyzeTransByYear(request.cookies['token'], year);
+    }
     async createTransaction(request, type, categoryID, money, description, datetime) {
         return this.transactionService.createTransaction(request.cookies['token'], type, categoryID, money, description, datetime);
     }
@@ -51,6 +54,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, Number, Number]),
     __metadata("design:returntype", Promise)
 ], TransactionController.prototype, "getTransactionsInMonth", null);
+__decorate([
+    (0, common_1.Get)('analyze'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Query)('year', new common_1.DefaultValuePipe(new Date().getFullYear()), common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number]),
+    __metadata("design:returntype", Promise)
+], TransactionController.prototype, "analyzeTransByYear", null);
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Req)()),

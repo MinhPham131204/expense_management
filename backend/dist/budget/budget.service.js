@@ -28,7 +28,7 @@ let BudgetService = class BudgetService {
     async getBudget(userID) {
         const year = new Date().getFullYear();
         const month = new Date().getMonth() + 1;
-        return this.budgetModel.find({ userID, createdTime: { $gte: new Date(year, month - 1, 1), $lt: new Date(year, month, 1) } }).exec();
+        return this.budgetModel.find({ userID, createdTime: { $gte: new Date(year, month - 1, 1), $lt: new Date(year, month, 1) } }).populate("categoryID").exec();
     }
     async getBudgetById(userID, id) {
         const year = new Date().getFullYear();
@@ -45,11 +45,18 @@ let BudgetService = class BudgetService {
         if (temp.length) {
             return { message: 'Ngân sách cho danh mục này đã tồn tại' };
         }
-        const newBudget = new this.budgetModel({ userID, categoryID, budget, createdTime: new Date() });
+        const arr = await this.transactionModel.find({ userID, categoryID: temp[0]['categoryID'], type: 'Chi tiêu', datetime: { $gte: new Date(year, month - 1, 1), $lt: new Date(year, month, 1) } }).populate('categoryID').exec();
+        const expense = arr.reduce((acc, cur) => acc + parseInt(cur.money), 0);
+        const newBudget = new this.budgetModel({ userID, categoryID, budget, remaining: parseInt(budget) - expense, createdTime: new Date() });
         return newBudget.save();
     }
     async updateBudget(id, budget) {
-        const updatedBudget = await this.budgetModel.findByIdAndUpdate(id, { budget }, { new: true });
+        const existingBudget = await this.budgetModel.findById(id);
+        if (!existingBudget) {
+            throw new Error(`Budget with ID ${id} not found`);
+        }
+        const expense = parseInt(existingBudget.budget) - parseInt(existingBudget.remaining);
+        const updatedBudget = await this.budgetModel.findByIdAndUpdate(id, { budget, remaining: parseInt(budget) - expense }, { new: true });
         if (!updatedBudget) {
             throw new Error(`Budget with ID ${id} not found`);
         }
@@ -61,6 +68,57 @@ let BudgetService = class BudgetService {
             throw new Error(`Budget with ID ${id} not found`);
         }
         return deletedBudget;
+    }
+    async getWarningBudgets(userID, month, year) {
+        const budgets = await this.budgetModel.find({
+            userID,
+            createdTime: {
+                $gte: new Date(year, month - 1, 1),
+                $lt: new Date(year, month, 1)
+            }
+        }).populate("categoryID").exec();
+        const warningBudgets = budgets.filter(budget => {
+            const originalBudget = Number(budget.budget);
+            const remaining = Number(budget.remaining);
+            const tenPercentOfBudget = originalBudget * 0.1;
+            return remaining <= tenPercentOfBudget;
+        });
+        return warningBudgets;
+    }
+    async analyzeBudgetByMonth(userID, month, year) {
+        const budgets = await this.budgetModel.find({
+            userID,
+            createdTime: {
+                $gte: new Date(year, month - 1, 1),
+                $lt: new Date(year, month, 1)
+            }
+        }).populate("categoryID").exec();
+        const transactions = await this.transactionModel.find({
+            userID,
+            type: 'Chi tiêu',
+            datetime: {
+                $gte: new Date(year, month - 1, 1),
+                $lt: new Date(year, month, 1)
+            }
+        }).populate('categoryID').exec();
+        const result = budgets.map(budget => {
+            const budgetCategoryId = budget.categoryID["_id"] ? budget.categoryID["_id"].toString() : budget.categoryID.toString();
+            const categoryTransactions = transactions.filter(transaction => {
+                const transactionCategoryId = transaction.categoryID["_id"] ? transaction.categoryID["_id"].toString() : transaction.categoryID.toString();
+                return transactionCategoryId === budgetCategoryId;
+            });
+            const totalExpenses = categoryTransactions.reduce((sum, transaction) => sum + parseInt(transaction.money), 0);
+            const categoryName = budget.categoryID.name || 'Unknown Category';
+            return {
+                categoryID: budgetCategoryId,
+                categoryName: categoryName,
+                budget: Number(budget.budget),
+                expense: totalExpenses,
+                remaining: Number(budget.budget) - totalExpenses
+            };
+        });
+        result.sort((a, b) => b.expense - a.expense);
+        return result;
     }
 };
 exports.BudgetService = BudgetService;

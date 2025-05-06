@@ -9,9 +9,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BudgetModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
-const budget_schema_1 = require("../schemas/budget.schema");
-const budget_service_1 = require("./budget.service");
 const budget_controller_1 = require("./budget.controller");
+const budget_service_1 = require("./budget.service");
+const budget_schema_1 = require("../schemas/budget.schema");
+const transaction_schema_1 = require("../schemas/transaction.schema");
 const transaction_module_1 = require("../transaction/transaction.module");
 let BudgetModule = class BudgetModule {
 };
@@ -19,11 +20,15 @@ exports.BudgetModule = BudgetModule;
 exports.BudgetModule = BudgetModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forFeature([{ name: budget_schema_1.Budget.name, schema: budget_schema_1.BudgetSchema }]),
-            transaction_module_1.TransactionModule,
+            mongoose_1.MongooseModule.forFeature([
+                { name: budget_schema_1.Budget.name, schema: budget_schema_1.BudgetSchema },
+                { name: transaction_schema_1.Transaction.name, schema: transaction_schema_1.TransactionSchema }
+            ]),
+            (0, common_1.forwardRef)(() => transaction_module_1.TransactionModule),
         ],
+        controllers: [budget_controller_1.BudgetController],
         providers: [budget_service_1.BudgetService],
-        controllers: [budget_controller_1.BudgetController]
+        exports: [budget_service_1.BudgetService]
     })
 ], BudgetModule);
 //# sourceMappingURL=budget.module.js.map

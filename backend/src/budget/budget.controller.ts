@@ -16,12 +16,11 @@ export class BudgetController {
         return this.budgetService.getBudget(request.cookies['token']);
     }
 
-    @Get(':id')
-    getBudgetById(
+    @Get('analyze')
+    analyzeBudgetByMonth(
         @Req() request: Request,
-        @Param() params: any
     ) {
-        return this.budgetService.getBudgetById(request.cookies['token'], params.id);
+        return this.budgetService.analyzeBudgetByMonth(request.cookies['token'], 3, new Date().getFullYear());
     }
 
     @Post('create')
@@ -39,6 +38,23 @@ export class BudgetController {
         @Body('budget') budget: string,
     ) {
         return await this.budgetService.updateBudget(id, budget);
+    }
+
+    // @Get('warning')
+    // async warningBudget(
+    //     @Req() request: Request,
+    //     @Query('month', new DefaultValuePipe(new Date().getMonth() + 1), ParseIntPipe) month: number,
+    //     @Query('year', new DefaultValuePipe(new Date().getFullYear()), ParseIntPipe) year: number,
+    // ) {
+    //     return await this.budgetService.getWarningBudgets(request.cookies['token'], month, year);
+    // }
+
+    @Get(':id')
+    getBudgetById(
+        @Req() request: Request,
+        @Param() params: any
+    ) {
+        return this.budgetService.getBudgetById(request.cookies['token'], params.id);
     }
 
     @Delete('delete/:id')
