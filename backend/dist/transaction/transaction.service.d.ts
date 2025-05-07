@@ -1,10 +1,8 @@
 import { Model } from 'mongoose';
-import { BudgetDocument } from 'src/schemas/budget.schema';
 import { Transaction, TransactionDocument } from 'src/schemas/transaction.schema';
 export declare class TransactionService {
     private transactionModel;
-    private budgetModel;
-    constructor(transactionModel: Model<TransactionDocument>, budgetModel: Model<BudgetDocument>);
+    constructor(transactionModel: Model<TransactionDocument>);
     getTransactions(userID: string, year: number): Promise<{
         income: number;
         expense: number;

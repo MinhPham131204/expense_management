@@ -13,23 +13,17 @@ const transaction_schema_1 = require("../schemas/transaction.schema");
 const transaction_service_1 = require("./transaction.service");
 const transaction_controller_1 = require("./transaction.controller");
 const category_module_1 = require("../category/category.module");
-const budget_module_1 = require("../budget/budget.module");
-const budget_schema_1 = require("../schemas/budget.schema");
 let TransactionModule = class TransactionModule {
 };
 exports.TransactionModule = TransactionModule;
 exports.TransactionModule = TransactionModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forFeature([
-                { name: transaction_schema_1.Transaction.name, schema: transaction_schema_1.TransactionSchema },
-                { name: budget_schema_1.Budget.name, schema: budget_schema_1.BudgetSchema }
-            ]),
-            (0, common_1.forwardRef)(() => budget_module_1.BudgetModule),
+            mongoose_1.MongooseModule.forFeature([{ name: transaction_schema_1.Transaction.name, schema: transaction_schema_1.TransactionSchema }]),
             category_module_1.CategoryModule,
         ],
         providers: [transaction_service_1.TransactionService],
-        exports: [transaction_service_1.TransactionService, mongoose_1.MongooseModule],
+        exports: [mongoose_1.MongooseModule],
         controllers: [transaction_controller_1.TransactionController]
     })
 ], TransactionModule);

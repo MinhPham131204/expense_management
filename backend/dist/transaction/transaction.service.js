@@ -16,14 +16,11 @@ exports.TransactionService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
-const budget_schema_1 = require("../schemas/budget.schema");
 const transaction_schema_1 = require("../schemas/transaction.schema");
 let TransactionService = class TransactionService {
     transactionModel;
-    budgetModel;
-    constructor(transactionModel, budgetModel) {
+    constructor(transactionModel) {
         this.transactionModel = transactionModel;
-        this.budgetModel = budgetModel;
     }
     async getTransactions(userID, year) {
         const arr = await this.transactionModel.find({ userID, datetime: { $gte: new Date(year, 0, 1), $lt: new Date(year + 1, 0, 1) } }).populate('categoryID').exec();
@@ -46,13 +43,6 @@ let TransactionService = class TransactionService {
     }
     async createTransaction(userID, type, categoryID, money, description, datetime) {
         const newTransaction = new this.transactionModel({ userID, type, categoryID, money, description, datetime });
-        const budget = await this.budgetModel.findOne({ userID, categoryID, createdTime: { $gte: new Date(new Date(datetime).getFullYear(), new Date(datetime).getMonth(), 1), $lt: new Date(new Date(datetime).getFullYear(), new Date(datetime).getMonth() + 1, 1) } }).exec();
-        if (type === 'Chi tiêu' && budget) {
-            if (parseInt(budget.remaining) - parseInt(money) < 0) {
-                throw new common_1.NotFoundException('Ngân sách không đủ cho giao dịch này.');
-            }
-            await this.budgetModel.findByIdAndUpdate(budget._id, { remaining: parseInt(budget.remaining) - parseInt(money) }, { new: true });
-        }
         return newTransaction.save();
     }
     async deleteTransaction(userID, transactionID) {
@@ -102,8 +92,6 @@ exports.TransactionService = TransactionService;
 exports.TransactionService = TransactionService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(transaction_schema_1.Transaction.name)),
-    __param(1, (0, mongoose_1.InjectModel)(budget_schema_1.Budget.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model,
-        mongoose_2.Model])
+    __metadata("design:paramtypes", [mongoose_2.Model])
 ], TransactionService);
 //# sourceMappingURL=transaction.service.js.map

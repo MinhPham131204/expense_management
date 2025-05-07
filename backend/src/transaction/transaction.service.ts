@@ -8,14 +8,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { Budget, BudgetDocument } from 'src/schemas/budget.schema';
 import { Transaction, TransactionDocument } from 'src/schemas/transaction.schema';
 
 @Injectable()
 export class TransactionService {
     constructor(
         @InjectModel(Transaction.name) private transactionModel: Model<TransactionDocument>,
-        @InjectModel(Budget.name) private budgetModel: Model<BudgetDocument>
     ) {}
 
     async getTransactions(userID: string, year: number): Promise<{ income: number, expense: number, difference: number, transactions: Transaction[] }> {

@@ -16,7 +16,6 @@ export declare class BudgetService {
     }>;
     updateBudget(id: string, budget: string): Promise<Budget>;
     deleteBudget(id: string): Promise<Budget>;
-    getWarningBudgets(userID: string, month: number, year: number): Promise<Budget[]>;
     analyzeBudgetByMonth(userID: string, month: number, year: number): Promise<Array<{
         categoryID: string;
         categoryName: string;

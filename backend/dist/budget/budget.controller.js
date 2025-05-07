@@ -32,9 +32,6 @@ let BudgetController = class BudgetController {
     async updateBudget(id, budget) {
         return await this.budgetService.updateBudget(id, budget);
     }
-    async warningBudget(request, month, year) {
-        return await this.budgetService.getWarningBudgets(request.cookies['token'], month, year);
-    }
     getBudgetById(request, params) {
         return this.budgetService.getBudgetById(request.cookies['token'], params.id);
     }
@@ -74,15 +71,6 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], BudgetController.prototype, "updateBudget", null);
-__decorate([
-    (0, common_1.Get)('warning'),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Query)('month', new common_1.DefaultValuePipe(new Date().getMonth() + 1), common_1.ParseIntPipe)),
-    __param(2, (0, common_1.Query)('year', new common_1.DefaultValuePipe(new Date().getFullYear()), common_1.ParseIntPipe)),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Number, Number]),
-    __metadata("design:returntype", Promise)
-], BudgetController.prototype, "warningBudget", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Req)()),

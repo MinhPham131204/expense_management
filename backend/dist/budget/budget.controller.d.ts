@@ -14,7 +14,6 @@ export declare class BudgetController {
         message: string;
     }>;
     updateBudget(id: string, budget: string): Promise<import("../schemas/budget.schema").Budget>;
-    warningBudget(request: Request, month: number, year: number): Promise<import("../schemas/budget.schema").Budget[]>;
     getBudgetById(request: Request, params: any): Promise<{
         budget: import("../schemas/budget.schema").Budget;
         remaining: number;

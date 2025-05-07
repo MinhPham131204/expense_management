@@ -45,18 +45,11 @@ let BudgetService = class BudgetService {
         if (temp.length) {
             return { message: 'Ngân sách cho danh mục này đã tồn tại' };
         }
-        const arr = await this.transactionModel.find({ userID, categoryID: temp[0]['categoryID'], type: 'Chi tiêu', datetime: { $gte: new Date(year, month - 1, 1), $lt: new Date(year, month, 1) } }).populate('categoryID').exec();
-        const expense = arr.reduce((acc, cur) => acc + parseInt(cur.money), 0);
-        const newBudget = new this.budgetModel({ userID, categoryID, budget, remaining: parseInt(budget) - expense, createdTime: new Date() });
+        const newBudget = new this.budgetModel({ userID, categoryID, budget, createdTime: new Date() });
         return newBudget.save();
     }
     async updateBudget(id, budget) {
-        const existingBudget = await this.budgetModel.findById(id);
-        if (!existingBudget) {
-            throw new Error(`Budget with ID ${id} not found`);
-        }
-        const expense = parseInt(existingBudget.budget) - parseInt(existingBudget.remaining);
-        const updatedBudget = await this.budgetModel.findByIdAndUpdate(id, { budget, remaining: parseInt(budget) - expense }, { new: true });
+        const updatedBudget = await this.budgetModel.findByIdAndUpdate(id, { budget }, { new: true });
         if (!updatedBudget) {
             throw new Error(`Budget with ID ${id} not found`);
         }
@@ -68,22 +61,6 @@ let BudgetService = class BudgetService {
             throw new Error(`Budget with ID ${id} not found`);
         }
         return deletedBudget;
-    }
-    async getWarningBudgets(userID, month, year) {
-        const budgets = await this.budgetModel.find({
-            userID,
-            createdTime: {
-                $gte: new Date(year, month - 1, 1),
-                $lt: new Date(year, month, 1)
-            }
-        }).populate("categoryID").exec();
-        const warningBudgets = budgets.filter(budget => {
-            const originalBudget = Number(budget.budget);
-            const remaining = Number(budget.remaining);
-            const tenPercentOfBudget = originalBudget * 0.1;
-            return remaining <= tenPercentOfBudget;
-        });
-        return warningBudgets;
     }
     async analyzeBudgetByMonth(userID, month, year) {
         const budgets = await this.budgetModel.find({
