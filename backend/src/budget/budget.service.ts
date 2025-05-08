@@ -17,9 +17,7 @@ export class BudgetService {
         @InjectModel(Transaction.name) private transactionModel: Model<TransactionDocument>
     ) {}
     
-    async getBudget(userID: string): Promise<Budget[]> {
-        const year = new Date().getFullYear();
-        const month = new Date().getMonth() + 1;
+    async getBudget(userID: string, month: number, year: number): Promise<Budget[]> {
         return this.budgetModel.find({ userID, createdTime: { $gte: new Date(year, month - 1, 1), $lt: new Date(year, month, 1) } }).populate("categoryID").exec();
     }
 
