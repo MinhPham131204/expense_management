@@ -17,11 +17,9 @@ export const BarCharts: React.FC<{ data: BarChartsProps[], timeframe: Timeframe 
 
     
     return (
-        <div className={cn(
-        "flex items-center justify-center p-4 bg-cyan-50 shadow-lg rounded-lg",
-        timeframe === "year" ? "w-[1000px]" :
-        timeframe === "month" ? "w-[1200px]" : "w-[600px]"
-        )}>
+        <div className={
+            "flex items-center justify-center p-4 bg-cyan-50 shadow-lg rounded-lg w-full"
+        }>
         <ResponsiveContainer width="100%" height={350}>
             <BarChart 
             data={data}
@@ -57,7 +55,7 @@ export const BarCharts: React.FC<{ data: BarChartsProps[], timeframe: Timeframe 
             {/* X-Axis */}
             <XAxis 
                 stroke="#555555"
-                fontSize={12}
+                fontSize={18}
                 fontWeight="bold"
                 tickLine={false}
                 padding={{ left: 5, right: 5 }}
@@ -82,7 +80,7 @@ export const BarCharts: React.FC<{ data: BarChartsProps[], timeframe: Timeframe 
             <YAxis 
                 stroke="#555555" 
                 strokeWidth={2} 
-                fontSize={12}
+                fontSize={18}
                 fontWeight="bold"
                 tickLine={false} 
                 // axisLine={{ strokeWidth: 2, markerEnd: "url(#arrowUp)" }}
@@ -92,14 +90,14 @@ export const BarCharts: React.FC<{ data: BarChartsProps[], timeframe: Timeframe 
             <Bar dataKey="income" fill="url(#incomeBar)" radius={[4, 4, 0, 0]} fillOpacity={1}>
                 {/* Hiển thị số tiền trên từng cột */}
                 {data.map((entry, index) => (
-                <text key={index} x={index * 50 + 10} y={entry.income - 10} fill="#10b981" fontSize="12" fontWeight="bold">
+                <text key={index} x={index * 50 + 10} y={entry.income - 10} fill="#10b981" fontSize="18" fontWeight="bold">
                     {entry.income} VNĐ
                 </text>
                 ))}
             </Bar>
             <Bar dataKey="expense" fill="url(#expenseBar)" radius={[4, 4, 0, 0]} fillOpacity={1}>
                 {data.map((entry, index) => (
-                <text key={index} x={index * 50 + 10} y={entry.expense - 10} fill="#ef4444" fontSize="12" fontWeight="bold">
+                <text key={index} x={index * 50 + 10} y={entry.expense - 10} fill="#ef4444" fontSize="18" fontWeight="bold">
                     {entry.expense} VNĐ
                 </text>
                 ))}
@@ -159,8 +157,8 @@ export const PieCharts: React.FC<{ data: PieChartsProps[]  }> = ({data}) => {
     
 
     return (
-        <div className="w-1/2 flex flex-col items-center justify-center p-4 bg-white shadow-lg rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">📊 Phân bổ thu nhập & chi tiêu</h3>
+        <div className="w-full flex flex-col items-center justify-center p-4 bg-white shadow-lg rounded-lg">
+            <h3 className="text-2xl font-semibold text-gray-700 mb-2">📊 Phân bổ thu nhập & chi tiêu</h3>
             
             <ResponsiveContainer width="100%" height={320}>
                 <PieChart>
@@ -198,7 +196,7 @@ export const PieCharts: React.FC<{ data: PieChartsProps[]  }> = ({data}) => {
                         ))}
                     </Pie>
                     <Tooltip formatter={(value, name) => [`${value.toLocaleString()} VND`, name]} />
-                    <Legend verticalAlign="bottom" iconSize={12} wrapperStyle={{ marginTop: 10 }} />
+                    <Legend verticalAlign="bottom" iconSize={18} wrapperStyle={{ marginTop: 10, fontSize: 16 }} />
                 </PieChart>
             </ResponsiveContainer>
         </div>

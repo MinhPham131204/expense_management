@@ -18,3 +18,16 @@ export type Category = {
     name: string;
     subCategory: SubCategory[];
 }
+export type BudgetType = {
+    _id: string;
+    userID: string;
+    categoryID: string; //
+    budget: string;
+    createdTime: Date;
+}
+
+export type BudgetDetail = {
+    budget: BudgetType;
+    remaining: number;
+    transactions: Transaction[];
+}

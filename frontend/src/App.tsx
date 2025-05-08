@@ -195,7 +195,7 @@ function App(): JSX.Element {
           <Route path="/" element={isLoggedIn ? <Dashboard /> : <Navigate to="/login" />} />
           <Route path="/login" element={isLoggedIn ? <Navigate to="/" /> : <LoginSignup />} />
           <Route path="/history" element={isLoggedIn ? <History /> : <Navigate to="/login" />} />
-          <Route path="/budget" element={isLoggedIn ? <Budget /> : <Navigate to="/login" />} />
+          <Route path="/budget" element={isLoggedIn ? <Budget categories={categories} /> : <Navigate to="/login" />} />
           <Route path="/statistic" element={isLoggedIn ? <Statistic transactions={transactions} categories={categories} transactionsPeriod={transactionsPeriod} /> : <Navigate to="/login" />} />
         </Routes>
       </Router>
