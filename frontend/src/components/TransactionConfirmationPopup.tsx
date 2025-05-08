@@ -112,7 +112,7 @@ const TransactionConfirmationPopup = forwardRef<HTMLDivElement, TransactionConfi
                       <FormLabel className="text-right">Loại</FormLabel>
                       <FormControl>
                         <div className="col-span-3 p-2 dark:bg-black bg-gray-100 rounded">
-                          {field.value === "income" ? "Thu nhập" : "Chi tiêu"}
+                          {field.value}
                         </div>
                       </FormControl>
                     </FormItem>
