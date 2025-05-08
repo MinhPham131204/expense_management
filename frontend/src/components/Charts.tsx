@@ -18,7 +18,7 @@ export const BarCharts: React.FC<{ data: BarChartsProps[], timeframe: Timeframe 
     
     return (
         <div className={
-            "flex items-center justify-center p-4 bg-cyan-50 shadow-lg rounded-lg w-full"
+            "flex items-center justify-center p-4 bg-cyan-50 shadow-lg rounded-lg h-full w-full"
         }>
         <ResponsiveContainer width="100%" height={350}>
             <BarChart 
@@ -157,10 +157,11 @@ export const PieCharts: React.FC<{ data: PieChartsProps[]  }> = ({data}) => {
     
 
     return (
-        <div className="w-full flex flex-col items-center justify-center p-4 bg-white shadow-lg rounded-lg">
+        <div className="w-full flex flex-col items-center gap-4 justify-center p-4 bg-white shadow-lg rounded-lg">
+
             <h3 className="text-2xl font-semibold text-gray-700 mb-2">📊 Phân bổ thu nhập & chi tiêu</h3>
             
-            <ResponsiveContainer width="100%" height={320}>
+            <ResponsiveContainer width="100%" height={360}>
                 <PieChart>
                     <Pie
                         data={data}
@@ -196,7 +197,24 @@ export const PieCharts: React.FC<{ data: PieChartsProps[]  }> = ({data}) => {
                         ))}
                     </Pie>
                     <Tooltip formatter={(value, name) => [`${value.toLocaleString()} VND`, name]} />
-                    <Legend verticalAlign="bottom" iconSize={18} wrapperStyle={{ marginTop: 10, fontSize: 16 }} />
+                    <Legend
+                        verticalAlign="bottom"
+                        iconSize={18}
+                        content={({ payload }) => (
+                            <ul className="flex flex-wrap justify-center gap-4 mt-4 text-base">
+                            {payload?.map((entry, index) => (
+                                <li key={`legend-${index}`} className="flex items-center space-x-2">
+                                <div
+                                    style={{ backgroundColor: entry.color }}
+                                    className="w-4 h-4 rounded"
+                                />
+                                <span>{entry.value}</span>
+                                </li>
+                            ))}
+                            </ul>
+                        )}
+                        />
+
                 </PieChart>
             </ResponsiveContainer>
         </div>
