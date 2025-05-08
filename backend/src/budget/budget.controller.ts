@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Body, Controller, Delete, Get, Param, Post, Put, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, ParseIntPipe, DefaultValuePipe, Query } from '@nestjs/common';
 import { Request } from 'express';
 import { BudgetService } from './budget.service';
 
@@ -12,8 +12,10 @@ export class BudgetController {
     @Get()
     getAllBudgets(
         @Req() request: Request,
+        @Query('month', new DefaultValuePipe(new Date().getMonth() + 1), ParseIntPipe) month: number,
+        @Query('year', new DefaultValuePipe(new Date().getFullYear()), ParseIntPipe) year: number,
     ) {
-        return this.budgetService.getBudget(request.cookies['token']);
+        return this.budgetService.getBudget(request.cookies['token'], month, year);
     }
 
     @Get('analyze')
