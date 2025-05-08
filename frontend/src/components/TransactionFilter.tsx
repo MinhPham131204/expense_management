@@ -39,7 +39,7 @@ const TransactionFilters = ({
     keyword: "",
   });
 
-  // Xử lý thay đổi bộ lọc
+  // Xử lý thay đổi lọc
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {

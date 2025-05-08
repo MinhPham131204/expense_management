@@ -26,11 +26,9 @@ type SortConfig = {
   direction: "asc" | "desc";
 } | null;
 
-interface TransactionTableProps {
-  timeframe: Timeframe;
-}
 
-const TransactionTable = ({ timeframe }: TransactionTableProps) => {
+
+const TransactionTable = () => {
   const [transactions, setTransactions] = useState<Transaction[]>(sampleData);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "datetime", direction: "desc" });
   const [darkMode, setDarkMode] = useState(false);
@@ -44,6 +42,9 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
     category: "",
     keyword: "",
   });
+
+  const [loading, setLoading] = useState(true);
+
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter((transaction) => {
@@ -113,7 +114,7 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
   }, [ sortConfig, filteredTransactions]);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const transactionsPerPage = 16;
+  const transactionsPerPage = 15
 
   const paginatedTransactions = useMemo(() => {
     const startIndex = (currentPage - 1) * transactionsPerPage;
@@ -136,6 +137,9 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
         }
       } catch (error) {
           console.error("Error fetching transactions:", error);
+          toast.error("Lỗi khi tải dữ liệu giao dịch!");
+        } finally {
+          setLoading(false);
         }
       };
       fetchTransactions();
@@ -183,26 +187,23 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
     if (!sortConfig || sortConfig.key !== key) { return null; }
     return sortConfig.direction === "asc" ? " ▲" : " ▼";
   };
+  const [showFilters, setShowFilters] = useState(false);
+
   
   
 
   return (
-    <div className={cn(" rounded-lg shadow-lg gap-10 flex w-[90%] h-[920px] m-2 p-4", darkMode ? "bg-gray-900 text-white" : "bg-white flex min-w-1/2  text-gray-900")}> 
-      <div className={`flex flex-col items-center gap-6 max-w-1/3 p-4 `}>
-        <div className="flex flex-col items-center text-center gap-4 w-full max-w-2xl">
+    <div className={cn("relative rounded-lg shadow-lg gap-3 flex flex-col items-center justify-center w-[90%] min-h-[98vh] h-full m-2 p-4 pb-8", darkMode ? "bg-gray-900 text-white" : "bg-white flex min-w-1/2  text-gray-900")}> 
+      <div className={`flex flex-col items-center gap-4 p-4`}>
+        <div className="flex flex-col items-center text-center justify-center gap-8 w-full max-w-2xl">
           <h3 className="font-bold text-4xl">Transactions History</h3>
-          <TransactionSummary transactions={transactions} />
-          <TransactionFilters darkMode={darkMode} onApply={setFilters} availableCategories={availableCategories} />
+          <TransactionSummary transactions={sortedTransactions} />
         </div>
-        
-        <Button variant="ghost" className="text-red-400 hover:text-blue-400" onClick={() => setDarkMode(!darkMode)}>
-          {darkMode ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
-        </Button>
       </div>
 
-      <div className="flex flex-col items-center gap-4 w-full flex-3 max-w-2/3">
+      <div className="flex flex-col items-center gap-4 w-[90%] flex-3">
         <Table className="w-full border rounded-lg overflow-hidden">
-          <TableHeader className={cn(darkMode ? "bg-gray-800 text-gray-300" : "bg-gray-100 text-gray-700")}> 
+          <TableHeader className={cn(darkMode ? "bg-gray-800 text-gray-300" : "bg-gray-100 text-gray-700 text-lg")}> 
             <TableRow className="n-child:text-center">
               {["Category", "Description", "Date", "Type", "Amount", "Actions"].map((header, index) => {
                 const key = TRANSACTION_FIELDS[header]; // Lấy key từ TRANSACTION_FIELDS
@@ -220,9 +221,16 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedTransactions.length > 0 ? (
+          {loading ? (
+    <TableRow>
+      <TableCell colSpan={6} className="text-center py-4 text-blue-500 font-semibold">
+        Đang tải dữ liệu...
+      </TableCell>
+    </TableRow>
+  ) :
+            paginatedTransactions.length > 0 ? (
               paginatedTransactions.map((transaction) => (
-                <TableRow key={transaction._id.toString()} className={cn(darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100", "font-medium") }>
+                <TableRow key={transaction._id.toString()} className={cn(darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100", "font-medium text-lg") }>
                   <TableCell className="font-medium">{transaction.categoryID.name}</TableCell>
                   <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis min-w-[120px] max-w-[120px]">{transaction.description}</TableCell>
                   <TableCell>{new Date(transaction.datetime).toLocaleDateString('en-GB')}</TableCell>
@@ -244,7 +252,10 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
           </TableBody>
         </Table>
 
-        <div className="flex justify-center items-center  space-x-8">
+        <div className="fixed justify-center items-center space-x-8 bottom-10">
+          <Button variant="ghost" className="text-red-400 hover:text-blue-400" onClick={() => setDarkMode(!darkMode)}>
+            {darkMode ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
+          </Button>
           <Button 
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} 
             disabled={currentPage === 1}
@@ -259,6 +270,33 @@ const TransactionTable = ({ timeframe }: TransactionTableProps) => {
             <span className="text-gray-700">Next</span>
           </Button>
         </div>
+      </div>
+
+      <Button
+        variant="secondary"
+        className={`text-blue-600 hover:text-blue-900 absolute top-[50%] -translate-y-1/2 ${!showFilters? "right-10" : "right-[420px]"} z-20`}
+        onClick={() => setShowFilters(!showFilters)}
+      >
+        {!showFilters ? <span>&lt;</span> : <span>&gt;</span>}
+      </Button>
+
+
+      <div
+        className={cn(
+          "absolute top-[50%] -translate-y-1/2 right-0 z-10 transition-all duration-300 ease-in-out bg-white shadow-lg overflow-auto",
+          darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-black",
+          showFilters ? "w-[430px] opacity-100" : "w-0 opacity-0 pointer-events-none"
+        )}
+      >
+        {showFilters && (
+          <div className="p-4">
+            <TransactionFilters
+              darkMode={darkMode}
+              onApply={setFilters}
+              availableCategories={availableCategories}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

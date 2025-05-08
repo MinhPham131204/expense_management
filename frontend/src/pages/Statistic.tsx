@@ -45,7 +45,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { format, subMonths } from "date-fns";
-import { Category, Transaction, SubCategory } from '@/lib/types';
+import { Category, Transaction, SubCategory } from "@/lib/types";
+import { typeMap } from "@/lib/helper";
 
 interface StatisticProps {
   month: number;
@@ -55,55 +56,58 @@ interface StatisticProps {
   savings: number;
 }
 interface CategoryTrend {
-  category: string,
-  previousMonth: number,
-  currentMonth: number,
-  change: number,
-  icon: string,
+  category: string;
+  previousMonth: number;
+  currentMonth: number;
+  change: number;
+  icon: string;
 }
 
 const matchIcon: { [key: string]: string } = {
-  'Hóa đơn': '💳',
-  'Tiền thuê nhà': '🏠',
-  'Mua sắm': '🛍️',
-  'Sức khỏe': '💊',
-  'Làm đẹp': '💅',
-  'Giải trí': '🎬',
-  'Ăn uống': '🍔',
-  'Chợ - Siêu thị': '🛒',
-  'Di chuyển': '🚗',
-  'Lương': '💵',
-  'Thưởng': '🏆',
-  'Trợ cấp': '💰',
-  'Thu hồi nợ': '📉',
-  'Kinh doanh': '💡'
-}
+  "Hóa đơn": "💳",
+  "Tiền thuê nhà": "🏠",
+  "Mua sắm": "🛍️",
+  "Sức khỏe": "💊",
+  "Làm đẹp": "💅",
+  "Giải trí": "🎬",
+  "Ăn uống": "🍔",
+  "Chợ - Siêu thị": "🛒",
+  "Di chuyển": "🚗",
+  Lương: "💵",
+  Thưởng: "🏆",
+  "Trợ cấp": "💰",
+  "Thu hồi nợ": "📉",
+  "Kinh doanh": "💡",
+};
 
-
-const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] ; transactionsPeriod: StatisticProps[] }> = ({
-  transactionsPeriod, transactions, categories
-}) => {
+const Statistic: React.FC<{
+  transactions: Transaction[];
+  categories: Category[];
+  transactionsPeriod: StatisticProps[];
+}> = ({ transactionsPeriod, transactions, categories }) => {
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState("3months");
   const [currentMonth, setCurrentMonth] = useState(
-    format(new Date(), "MMMM yyyy")
+    format(new Date(), "MM/yyyy")
   );
   const [previousMonth, setPreviousMonth] = useState(
-    format(subMonths(new Date(), 1), "MMMM yyyy")
+    format(subMonths(new Date(), 1), "MM/yyyy")
   );
   const [categoryTrends, setCategoryTrends] = useState<CategoryTrend[]>([]);
 
   const getMonth = (date: string) => new Date(date).getMonth();
 
-  
   // console.log(transactions);
   // console.log(categories);
-  
+
   useEffect(() => {
-    const calculateCategoryTrends = (transactions: Transaction[], categories: SubCategory[]): CategoryTrend[] => {
+    const calculateCategoryTrends = (
+      transactions: Transaction[],
+      categories: SubCategory[]
+    ): CategoryTrend[] => {
       // Group transactions by category ID
       const groupedByCategory: { [key: string]: Transaction[] } = {};
-    
+
       transactions.forEach((transaction) => {
         const categoryId = transaction.categoryID._id;
         if (!groupedByCategory[categoryId]) {
@@ -113,39 +117,50 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
       });
 
       // console.log(groupedByCategory);
-      
-    
+
       // Calculate trends for each category
       return categories.map((category) => {
         const categoryTransactions = groupedByCategory[category._id] || [];
-        
+
         // Get the current month and previous month transactions
         const currentMonthTransactions = categoryTransactions.filter(
           (t) => getMonth(t.datetime) === new Date().getMonth()
         );
 
         console.log(currentMonthTransactions);
-        
+
         const previousMonthTransactions = categoryTransactions.filter(
           (t) => getMonth(t.datetime) === new Date().getMonth() - 1
         );
-    
+
         // Calculate the totals for the current and previous months
-        const currentMonthTotal = currentMonthTransactions.reduce((sum, t) => sum + Number(t.money), 0);
-        const previousMonthTotal = previousMonthTransactions.reduce((sum, t) => sum + Number(t.money), 0);
-    
+        const currentMonthTotal = currentMonthTransactions.reduce(
+          (sum, t) => sum + Number(t.money),
+          0
+        );
+        const previousMonthTotal = previousMonthTransactions.reduce(
+          (sum, t) => sum + Number(t.money),
+          0
+        );
+
         // Calculate the change
-        const change = currentMonthTotal !== 0
-        ? ((currentMonthTotal - previousMonthTotal) / currentMonthTotal * 100).toFixed(2)
-        : (previousMonthTotal !== 0 ? -100 : 0);
-          
+        const change =
+          currentMonthTotal !== 0
+            ? (
+                ((currentMonthTotal - previousMonthTotal) / currentMonthTotal) *
+                100
+              ).toFixed(2)
+            : previousMonthTotal !== 0
+            ? -100
+            : 0;
+
         // Return the CategoryTrend object
         return {
           category: category.name,
           previousMonth: previousMonthTotal,
           currentMonth: currentMonthTotal,
           change,
-          icon: matchIcon[category.name]
+          icon: matchIcon[category.name],
         };
       });
     };
@@ -154,7 +169,6 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
   }, [transactions, categories]);
 
   console.log(categoryTrends);
-  
 
   // Sample recommendations based on spending patterns
   const recommendations = [
@@ -240,9 +254,56 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
     );
   }
 
+  const forecastData = categoryTrends.map((cat) => ({
+    key: cat.category,
+    title: `Dự báo ${cat.category}`,
+    description: `Dự kiến chi khoảng ${Math.round(
+      cat.currentMonth * 1.1
+    ).toLocaleString()} VND`,
+    icon: cat.icon,
+  }));
+
+  const savingRate = (lastMonthSavings / lastMonthIncome) * 100;
+
+const getSavingColor = (rate: number) => {
+  if (rate < 0) {
+    return {
+      cardBg: "bg-red-50 dark:bg-red-900/20",
+      iconBg: "bg-red-100 dark:bg-red-800",
+      iconColor: "text-red-600 dark:text-red-300",
+      Icon: ArrowDown,
+    };
+  }
+  if (rate < 10) {
+    return {
+      cardBg: "bg-yellow-50 dark:bg-yellow-900/20",
+      iconBg: "bg-yellow-100 dark:bg-yellow-800",
+      iconColor: "text-yellow-600 dark:text-yellow-300",
+      Icon: TrendingUp,
+    };
+  }
+  if (rate < 30) {
+    return {
+      cardBg: "bg-green-50 dark:bg-green-900/20",
+      iconBg: "bg-green-100 dark:bg-green-800",
+      iconColor: "text-green-600 dark:text-green-300",
+      Icon: TrendingUp,
+    };
+  }
+  return {
+    cardBg: "bg-emerald-50 dark:bg-emerald-900/20",
+    iconBg: "bg-emerald-100 dark:bg-emerald-800",
+    iconColor: "text-emerald-600 dark:text-emerald-300",
+    Icon: TrendingUp,
+  };
+};
+
+const savingColor = getSavingColor(savingRate);
+
+
   return (
     <div className="flex w-screen min-h-screen bg-gradient-to-bl from-blue-100 to-cyan-100 dark:from-gray-900 dark:to-gray-700">
-      <div className="flex-none">
+      <div className=" flex-1">
         <SideBar />
       </div>
 
@@ -250,9 +311,9 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="flex-1 p-6 overflow-auto"
+        className="flex-4 p-6"
       >
-        <div className="max-w-6xl mx-auto pt-10">
+        <div className="max-w-[90%] mx-auto pt-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -261,12 +322,12 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
           >
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5" />
-                  Financial Overview
+                <CardTitle className="flex items-center gap-2 font-bold text-xl">
+                  <TrendingUp className="w-6 h-6" />
+                  Tổng quan tài chính
                 </CardTitle>
-                <CardDescription>
-                  Performance trends and key metrics
+                <CardDescription className="text-sm text-muted-foreground">
+                  Xu hướng hiệu suất và số liệu chính
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -274,15 +335,13 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
                   <div>
                     <div className="grid grid-cols-3 gap-4 mb-6">
                       <div className="p-4 text-center border rounded-lg">
-                        <p className="text-sm font-medium text-muted-foreground">
-                          Income
-                        </p>
-                        <p className="mt-1 text-2xl font-bold">
+                        <p className="text-xl font-bold">Thu nhập</p>
+                        <p className="mt-1 text-xl font-bold">
                           {lastMonthIncome} VND
                         </p>
                         <p
                           className={cn(
-                            "mt-1 text-xs",
+                            "mt-1 text-lg",
                             incomeVsAvg >= 0 ? "text-green-500" : "text-red-500"
                           )}
                         >
@@ -291,20 +350,18 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
                           ) : (
                             <ArrowDown className="inline w-3 h-3" />
                           )}
-                          {Math.abs(incomeVsAvg).toFixed(1)}% vs avg
+                          {Math.abs(incomeVsAvg).toFixed(1)}%
                         </p>
                       </div>
 
                       <div className="p-4 text-center border rounded-lg">
-                        <p className="text-sm font-medium text-muted-foreground">
-                          Expenses
-                        </p>
-                        <p className="mt-1 text-2xl font-bold">
+                        <p className="text-xl font-bold">Chi phí</p>
+                        <p className="mt-1 text-xl font-bold">
                           {lastMonthExpenses} VND
                         </p>
                         <p
                           className={cn(
-                            "mt-1 text-xs",
+                            "mt-1 text-lg",
                             expensesVsAvg <= 0
                               ? "text-green-500"
                               : "text-red-500"
@@ -315,20 +372,18 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
                           ) : (
                             <ArrowUp className="inline w-3 h-3" />
                           )}
-                          {Math.abs(expensesVsAvg).toFixed(1)}% vs avg
+                          {Math.abs(expensesVsAvg).toFixed(1)}%
                         </p>
                       </div>
 
                       <div className="p-4 text-center border rounded-lg">
-                        <p className="text-sm font-medium text-muted-foreground">
-                          Savings
-                        </p>
-                        <p className="mt-1 text-2xl font-bold">
+                        <p className="text-xl font-bold">Tiết kiệm</p>
+                        <p className="mt-1 text-xl font-bold">
                           {lastMonthSavings} VND
                         </p>
                         <p
                           className={cn(
-                            "mt-1 text-xs",
+                            "mt-1 text-lg",
                             savingsVsAvg >= 0
                               ? "text-green-500"
                               : "text-red-500"
@@ -339,7 +394,7 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
                           ) : (
                             <ArrowDown className="inline w-3 h-3" />
                           )}
-                          {Math.abs(savingsVsAvg).toFixed(1)}% vs avg
+                          {Math.abs(savingsVsAvg).toFixed(1)}%
                         </p>
                       </div>
                     </div>
@@ -353,8 +408,43 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
                           <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                           <XAxis dataKey="month" />
                           <YAxis />
-                          <Tooltip />
-                          <Legend />
+                          <Tooltip
+                            content={({ payload, label }) => {
+                              if (!payload || !payload.length) return null;
+                              return (
+                                <div className="p-2 bg-white border rounded shadow text-sm">
+                                  <p className="font-semibold">{label}</p>
+                                  {payload.map((entry, index) => {
+                                    const nameMap: Record<string, string> = {
+                                      income: "Thu nhập",
+                                      expense: "Chi phí",
+                                      savings: "Tiết kiệm",
+                                    };
+                                    return (
+                                      <p
+                                        key={index}
+                                        style={{ color: entry.color }}
+                                      >
+                                        {nameMap[entry.dataKey]}:{" "}
+                                        {Number(entry.value).toLocaleString()}{" "}
+                                        VND
+                                      </p>
+                                    );
+                                  })}
+                                </div>
+                              );
+                            }}
+                          />
+                          <Legend
+                            formatter={(value: string) => {
+                              const nameMap: Record<string, string> = {
+                                income: "Thu nhập",
+                                expense: "Chi phí",
+                                savings: "Tiết kiệm",
+                              };
+                              return nameMap[value] || value;
+                            }}
+                          />
                           <Line
                             type="monotone"
                             dataKey="income"
@@ -380,86 +470,78 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
                   </div>
 
                   <div>
-                    <h3 className="mb-4 text-lg font-medium">
-                      Spending Efficiency
-                    </h3>
-                    <div className="p-5 mb-5 rounded-lg bg-green-50 dark:bg-green-900/20">
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <p className="text-sm font-medium">Savings Rate</p>
-                          <p className="text-2xl font-bold">
-                            {(
-                              (lastMonthSavings / lastMonthIncome) *
-                              100
-                            ).toFixed(1)}
-                            %
-                          </p>
-                        </div>
-                        <div className="p-3 rounded-full bg-green-100 dark:bg-green-800">
-                          <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-300" />
-                        </div>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        You're saving{" "}
-                        {((lastMonthSavings / lastMonthIncome) * 100).toFixed(
-                          1
-                        )}
-                        % of your income, which is
-                        {savingsVsAvg >= 0 ? " above " : " below "}
-                        your average of{" "}
-                        {((monthlyAvgSavings / monthlyAvgIncome) * 100).toFixed(
-                          1
-                        )}
-                        %.
-                      </p>
-                    </div>
+                  <div className={`p-5 mb-5 rounded-lg ${savingColor.cardBg}`}>
+  <div className="flex items-center justify-between mb-2">
+    <div>
+      <p className="text-lg font-medium">Tỉ lệ tiết kiệm</p>
+      <p className="text-2xl font-bold">
+        {savingRate.toFixed(1)}%
+      </p>
+    </div>
+    <div className={`p-3 rounded-full ${savingColor.iconBg}`}>
+      <savingColor.Icon className={`w-6 h-6 ${savingColor.iconColor}`} />
+    </div>
+  </div>
+</div>
+
 
                     <h3 className="mb-3 text-lg font-medium">
-                      Monthly Comparison
+                      Tương quan với tháng trước
                     </h3>
                     <div className="space-y-3">
-                      {categoryTrends.sort((a, b) => Math.abs(b.currentMonth - b.previousMonth) - Math.abs(a.currentMonth - a.previousMonth)).slice(0, 4).map((category) => (
-                        <div
-                          key={category.category}
-                          className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50"
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xl" role="img">
-                                {category.icon}
+                      {categoryTrends
+                        .sort(
+                          (a, b) =>
+                            Math.abs(b.currentMonth - b.previousMonth) -
+                            Math.abs(a.currentMonth - a.previousMonth)
+                        )
+                        .slice(0, 4)
+                        .map((category) => (
+                          <div
+                            key={category.category}
+                            className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50"
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xl" role="img">
+                                  {category.icon}
+                                </span>
+                                <span className="font-medium">
+                                  {category.category}
+                                </span>
+                              </div>
+                              <div
+                                className={cn(
+                                  "text-sm font-medium",
+                                  (category.change < 0 &&
+                                    typeMap[category.category] ===
+                                      "Chi tiêu") ||
+                                    (category.change > 0 &&
+                                      typeMap[category.category] === "Thu nhập")
+                                    ? "text-green-500"
+                                    : category.change !== 0
+                                    ? "text-red-500"
+                                    : "text-gray-500"
+                                )}
+                              >
+                                {category.change === 0
+                                  ? "No change"
+                                  : category.change < 0
+                                  ? `↓ ${Math.abs(category.change)}%`
+                                  : `↑ ${category.change}%`}
+                              </div>
+                            </div>
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <span className="flex-1">
+                                {category.previousMonth} VND
                               </span>
-                              <span className="font-medium">
-                                {category.category}
+                              <span className="mx-2">→</span>
+                              <span className="flex-1">
+                                {category.currentMonth} VND
                               </span>
                             </div>
-                            <div
-                              className={cn(
-                                "text-sm font-medium",
-                                category.change < 0
-                                  ? "text-green-500"
-                                  : category.change > 0
-                                  ? "text-red-500"
-                                  : "text-gray-500"
-                              )}
-                            >
-                              {category.change === 0
-                                ? "No change"
-                                : category.change < 0
-                                ? `↓ ${Math.abs(category.change)}%`
-                                : `↑ ${category.change}%`}
-                            </div>
                           </div>
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <span className="flex-1">
-                              {category.previousMonth} VND
-                            </span>
-                            <span className="mx-2">→</span>
-                            <span className="flex-1">
-                              {category.currentMonth} VND
-                            </span>
-                          </div>
-                        </div>
-                      ))}
+                        ))}
                       {/* <Button
                         variant="ghost"
                         className="w-full text-sm"
@@ -474,7 +556,7 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
             </Card>
           </motion.div>
 
-          <motion.div
+          {/* <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
@@ -534,7 +616,7 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
                 </motion.div>
               ))}
             </div>
-          </motion.div>
+          </motion.div> */}
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -545,24 +627,27 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
               <TabsList>
                 <TabsTrigger value="trends" className="gap-2">
                   <LineChartIcon className="w-4 h-4 text-black" />
-                  <span className="text-gray-700">Spending Trends</span>
+                  <span className="text-gray-700">Xu hướng tiêu dùng</span>
                 </TabsTrigger>
                 <TabsTrigger value="category" className="gap-2">
                   <BarChart2 className="w-4 h-4 text-black" />
-                  <span className="text-gray-700">Category Analysis</span>
+                  <span className="text-gray-700">Thống kê theo danh mục</span>
                 </TabsTrigger>
-                <TabsTrigger value="forecast" className="gap-2">
+                {/* <TabsTrigger value="forecast" className="gap-2">
                   <PieChart className="w-4 h-4 text-black" />
-                  <span className="text-gray-700">Future Forecast</span>
-                </TabsTrigger>
+                  <span className="text-gray-700">Dự báo tương lai</span>
+                </TabsTrigger> */}
               </TabsList>
 
               <TabsContent value="trends" className="mt-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Spending Trend Analysis</CardTitle>
+                    <CardTitle className="text-xl font-bold">
+                      Phân tích xu hướng tiêu dùng
+                    </CardTitle>
                     <CardDescription>
-                      How your spending patterns have changed over{" "} the last 3 months
+                      Khuôn khổ tiêu dùng của bạn thay đổi như thế nào trong 3
+                      tháng qua
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -575,17 +660,52 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
                           <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                           <XAxis dataKey="month" />
                           <YAxis />
-                          <Tooltip />
-                          <Legend />
+                          <Tooltip
+                            content={({ payload, label }) => {
+                              if (!payload || !payload.length) return null;
+                              return (
+                                <div className="p-2 bg-white border rounded shadow text-sm">
+                                  <p className="font-semibold">{label}</p>
+                                  {payload.map((entry, index) => {
+                                    const nameMap: Record<string, string> = {
+                                      income: "Thu nhập",
+                                      expense: "Chi phí",
+                                      savings: "Tiết kiệm",
+                                    };
+                                    return (
+                                      <p
+                                        key={index}
+                                        style={{ color: entry.color }}
+                                      >
+                                        {nameMap[entry.dataKey]}:{" "}
+                                        {Number(entry.value).toLocaleString()}{" "}
+                                        VND
+                                      </p>
+                                    );
+                                  })}
+                                </div>
+                              );
+                            }}
+                          />
+                          <Legend
+                            formatter={(value: string) => {
+                              const nameMap: Record<string, string> = {
+                                income: "Thu nhập",
+                                expense: "Chi phí",
+                                savings: "Tiết kiệm",
+                              };
+                              return nameMap[value] || value;
+                            }}
+                          />
                           <Bar
                             dataKey="expense"
                             fill="#ef4444"
-                            name="Expenses"
+                            name="Chi tiêu"
                           />
                           <Bar
                             dataKey="savings"
                             fill="#3b82f6"
-                            name="Savings"
+                            name="Tiết kiệm"
                           />
                         </BarChart>
                       </ResponsiveContainer>
@@ -593,16 +713,16 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
 
                     <div className="grid gap-4 mt-6 md:grid-cols-3">
                       <div className="p-4 border rounded-lg">
-                        <p className="text-sm font-medium text-muted-foreground">
-                          Average Monthly Expenses
+                        <p className="text-lg font-bold text-muted-foreground">
+                          Tiêu dùng trung bình trên tháng
                         </p>
                         <p className="mt-2 text-2xl font-bold">
                           {monthlyAvgExpenses.toFixed(0)} VND
                         </p>
                       </div>
                       <div className="p-4 border rounded-lg">
-                        <p className="text-sm font-medium text-muted-foreground">
-                          Most Expensive Month
+                        <p className="text-lg font-bold text-muted-foreground">
+                          Tháng tiêu dùng nhiều nhất
                         </p>
                         <p className="mt-2 text-2xl font-bold">
                           {
@@ -613,8 +733,8 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
                         </p>
                       </div>
                       <div className="p-4 border rounded-lg">
-                        <p className="text-sm font-medium text-muted-foreground">
-                          Best Savings Month
+                        <p className="text-lg font-bold text-muted-foreground">
+                          Tháng tiết kiệm nhất
                         </p>
                         <p className="mt-2 text-2xl font-bold">
                           {
@@ -633,20 +753,22 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
                 <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle>Category Spending Analysis</CardTitle>
+                      <div className="flex flex-col gap-1">
+                        <CardTitle className="text-xl font-bold">
+                          Phân tích tiêu dùng danh mục
+                        </CardTitle>
                         <CardDescription>
-                          Comparing {previousMonth} to {currentMonth}
+                          So sánh {previousMonth} với {currentMonth}
                         </CardDescription>
                       </div>
-                      <div className="flex items-center gap-2">
+                      {/* <div className="flex items-center gap-2">
                         <Button variant="outline" size="icon">
                           <ChevronLeft className="w-4 h-4" />
                         </Button>
                         <Button variant="outline" size="icon">
                           <ChevronRight className="w-4 h-4" />
                         </Button>
-                      </div>
+                      </div> */}
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -688,10 +810,10 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
                           <div className="relative pt-1">
                             <div className="flex items-center justify-between mb-1">
                               <div className="text-xs font-semibold text-green-600">
-                                Previous Month
+                                Tháng trước
                               </div>
                               <div className="text-xs font-semibold text-blue-600">
-                                Current Month
+                                Tháng này
                               </div>
                             </div>
                             <div className="flex h-2 mb-4 overflow-hidden text-xs bg-gray-200 rounded dark:bg-gray-700">
@@ -722,106 +844,21 @@ const Statistic: React.FC<{ transactions: Transaction[]; categories: Category[] 
                 </Card>
               </TabsContent>
 
-              <TabsContent value="forecast" className="mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Next Month Forecast</CardTitle>
-                    <CardDescription>
-                      Projected budget allocation based on your spending
-                      patterns
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid gap-6 md:grid-cols-2">
-                      <div>
-                        <div className="p-6 mb-4 text-center border rounded-lg">
-                          <h3 className="mb-2 text-lg font-medium">
-                            Projected Savings
-                          </h3>
-                          <p className="text-4xl font-bold text-blue-500">
-                            155,000 VND
-                          </p>
-                          <p className="mt-2 text-sm text-muted-foreground">
-                            +6.9% compared to current month
-                          </p>
-                        </div>
-
-                        <h3 className="mb-3 text-lg font-medium">
-                          Optimized Budget Plan
-                        </h3>
-                        <div className="space-y-3">
-                          {categoryTrends.slice(0, 5).map((category) => (
-                            <div
-                              key={category.category}
-                              className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50"
-                            >
-                              <div className="flex items-center gap-2">
-                                <span className="text-xl" role="img">
-                                  {category.icon}
-                                </span>
-                                <span>{category.category}</span>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <span className="text-sm text-muted-foreground">
-                                  Current: ${category.currentMonth}
-                                </span>
-                                <span className="text-sm font-medium">
-                                  Suggested: $
-                                  {Math.round(category.currentMonth * 0.95)}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <h3 className="mb-4 text-lg font-medium">
-                          If You Follow Recommendations
-                        </h3>
-                        <div className="p-5 mb-4 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-                          <div className="flex items-center justify-between mb-3">
-                            <p className="font-medium">
-                              6-Month Savings Projection
-                            </p>
-                            <p className="text-xl font-bold">960.000 VND</p>
-                          </div>
-                          <Progress value={75} className="h-2 mb-2" />
-                          <p className="text-sm text-muted-foreground">
-                            75% of your yearly savings goal
-                          </p>
-                        </div>
-
-                        <h3 className="mb-3 text-lg font-medium">
-                          Top Optimization Opportunities
-                        </h3>
-                        <div className="space-y-3">
-                          <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20">
-                            <p className="font-medium">Food & Groceries</p>
-                            <p className="text-sm text-muted-foreground">
-                              Potential savings of 70 VND/month with meal
-                              planning
-                            </p>
-                          </div>
-                          <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20">
-                            <p className="font-medium">Entertainment</p>
-                            <p className="text-sm text-muted-foreground">
-                              Potential savings of 50 VND/month by using free
-                              alternatives
-                            </p>
-                          </div>
-                          <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20">
-                            <p className="font-medium">Transportation</p>
-                            <p className="text-sm text-muted-foreground">
-                              Potential savings of 40 VND/month with carpooling
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+              {/* <TabsContent value="forecast" className="mt-4">
+                <div className="grid gap-6 md:grid-cols-2">
+                  {forecastData.map(item => (
+                    <Card key={item.key} className="p-4 hover:shadow-lg transition">
+                      <CardHeader className="flex items-center gap-2">
+                        <span className="text-2xl">{item.icon}</span>
+                        <CardTitle>{item.title}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <CardDescription>{item.description}</CardDescription>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent> */}
             </Tabs>
           </motion.div>
         </div>

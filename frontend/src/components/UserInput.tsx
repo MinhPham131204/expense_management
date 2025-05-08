@@ -5,6 +5,10 @@ import TransactionConfirmationPopup from "./TransactionConfirmationPopup";
 import { SubCategory, TransactionType, Transaction } from "@/lib/types";
 import axios from "axios";
 import { toast } from "sonner";
+import { typeMap } from "@/lib/helper";
+
+
+
 
 const categoryMap: Record<string, { type: TransactionType; name: string }> = {
   // 🍽️ Ăn uống
@@ -12,27 +16,27 @@ const categoryMap: Record<string, { type: TransactionType; name: string }> = {
 
   // 🏬 Chợ - Siêu thị
   "chợ|siêu thị|mua thực phẩm|mua rau|mua thịt|đi chợ|mua đồ tươi sống": { type: "Chi tiêu", name: "Chợ - Siêu thị" },
-
-  // 🚗 Di chuyển
-  "đi|về|taxi|grab|be|gojek|xe ôm|vé xe|bảo dưỡng xe|sửa xe|rửa xe|xe bus|metro|tàu điện|vé tàu|vé máy bay|bãi đỗ xe|gửi xe|xăng": { type: "Chi tiêu", name: "Di chuyển" },
-
+  
   // 💡 Hóa đơn
   "tiền điện|tiền nước|wifi|internet|truyền hình|điện thoại trả trước|điện thoại trả sau|phí dịch vụ": { type: "Chi tiêu", name: "Hóa đơn" },
-
+  
   // 🏠 Tiền thuê nhà
   "tiền nhà|thuê nhà|trả tiền thuê nhà|nhà": { type: "Chi tiêu", name: "Tiền thuê nhà" },
-
+  
   // 🛍️ Mua sắm
   "mua|mua áo|mua quần|giày dép|túi xách|đồng hồ|mỹ phẩm|phụ kiện|điện thoại|laptop|máy ảnh|tablet|đồ điện tử": { type: "Chi tiêu", name: "Mua sắm" },
-
+  
   // 🏥 Sức khỏe
   "bệnh viện|khám bệnh|mua thuốc|bảo hiểm sức khỏe|tiêm vaccine|bác sĩ|dược phẩm|khám nha khoa|mắt kính|kính áp tròng": { type: "Chi tiêu", name: "Sức khỏe" },
-
+  
   // 💆‍♀️ Làm đẹp
   "đẹp|làm tóc|trang điểm|mua mỹ phẩm|chăm sóc da|spa|massage|phẫu thuật thẩm mỹ": { type: "Chi tiêu", name: "Làm đẹp" },
-
+  
   // 🎉 Giải trí
   "xem phim|karaoke|du lịch|thể thao|gym|bơi lội|câu cá|hát karaoke|game|mua game|steam|đi chơi": { type: "Chi tiêu", name: "Giải trí" },
+  
+  // 🚗 Di chuyển
+  "đi|về|taxi|grab|be|gojek|xe ôm|vé xe|bảo dưỡng xe|sửa xe|rửa xe|xe bus|metro|tàu điện|vé tàu|vé máy bay|bãi đỗ xe|gửi xe|xăng": { type: "Chi tiêu", name: "Di chuyển" },
 
   // 💰 Lương (Income)
   "lương|lương tháng|thu nhập chính|trả lương": { type: "Thu nhập", name: "Lương" },
@@ -62,48 +66,9 @@ function getCategory(input: string): { type: TransactionType; name: string } {
       return categoryMap[pattern];
     }
   }
-  return { type: "Chi tiêu" as TransactionType, name: "Chưa rõ" };
+  return { type: "Chi tiêu" as TransactionType, name: "Chưa nhận diện" };
 }
 
-function parseTransaction(input: string) {
-  const today = new Date();
-  const regex = /(?:(hôm qua|hôm kia|ngày mai|ngày mốt|\d{1,2}\/\d{1,2})\s*)?([\d,.km]+)\s*(.+)/i;
-  
-  const match = input.match(regex);
-  if (!match) { return null; }
-
-  const [, datePart, moneyStr, description] = match;
-  let date = new Date(today); // Mặc định là hôm nay
-
-  //console.log(datePart);
-  
-  if (datePart) {
-    if (datePart === "hôm qua") { date.setDate(today.getDate() - 1); }
-    else if (datePart === "hôm kia") { date.setDate(today.getDate() - 2); }
-    else if (datePart === "ngày mai") { date.setDate(today.getDate() + 1); } 
-    else if (datePart === "ngày mốt") { date.setDate(today.getDate() + 2); }
-    else if (datePart.includes("/")) {
-      
-      const parts = datePart.split("/").map(Number);
-      if (parts.length === 2) {
-        const [day, month] = parts;
-        date = new Date(today.getFullYear(), month - 1, day);
-      }
-    }
-  }
-  
-  
-  // Chuyển về định dạng YYYY-MM-DD
-  // Xử lý số tiền
-  
-  const moneyStrNew = moneyStr.toLowerCase().replace(/[,vnđ]/g, "").trim();
-  let money = parseFloat(moneyStrNew);
-  
-  if (moneyStrNew.includes("k")) { money *= 1000; }
-  if (moneyStrNew.includes("m")) { money *= 1000000; }
-
-  return { date: date, money, description: description.trim() };
-}
 
 
 function extractInfo(text: string) {
@@ -133,9 +98,9 @@ function extractInfo(text: string) {
   }
 
   // Extract money amount with improved pattern
-  const moneyPattern = /(\d+(?:[.,]\d{3})*(?:[.,]\d+)?|\d+)\s*(k|nghìn|ngàn|tr|triệu|m|vnđ|đồng)?(?:\s*\/?\w*)?/gi;
-  const moneyWithPhrasePattern = /(?:số tiền|giá|chi phí|tổng chi phí)\s*(\d+(?:[.,]\d{3})*(?:[.,]\d+)?|\d+)\s*(k|nghìn|ngàn|tr|triệu|m|vnđ|đồng)?(?:\s*\/?\w*)?/i;
-  const numberWordPattern = /(?:(\d+)\s*(triệu|nghìn|ngàn|m))/i;
+  const moneyPattern = /(\d+(?:[.,]\d{3})*(?:[.,]\d+)?|\d+)\s*(k|nghìn|ngàn|tr|triệu|m|b|tỉ|vnđ|đồng)?(?:\s*\/?\w*)?/gi;
+  const moneyWithPhrasePattern = /(?:số tiền|giá|chi phí|tổng chi phí)\s*(\d+(?:[.,]\d{3})*(?:[.,]\d+)?|\d+)\s*(k|nghìn|ngàn|tr|triệu|b|tỉ|m|vnđ|đồng)?(?:\s*\/?\w*)?/i;
+  const numberWordPattern = /(?:(\d+)\s*(triệu|nghìn|ngàn|m|b|tỉ))/i;
 
   let amount = 0;
 
@@ -152,10 +117,14 @@ function extractInfo(text: string) {
           let numericValue = parseFloat(cleanValue);
           if (unit) {
               const unitLower = unit.toLowerCase();
+              console.log(unitLower);
+              
               if (["k", "nghìn", "ngàn"].includes(unitLower)) {
                   numericValue *= 1000;
               } else if (["tr", "triệu", "m"].includes(unitLower)) {
                   numericValue *= 1000000;
+              } else if (["tỉ", "b"].includes(unitLower)) {
+                  numericValue *= 1000000000;
               }
           }
           amount = Math.floor(numericValue);
@@ -175,6 +144,8 @@ function extractInfo(text: string) {
                   numericValue *= 1000;
               } else if (["tr", "triệu", "m"].includes(unitLower)) {
                   numericValue *= 1000000;
+              } else if (["tỉ", "b"].includes(unitLower)) {
+                numericValue *= 1000000000;
               }
               amount = Math.floor(numericValue);
           } catch (e) {
@@ -219,6 +190,8 @@ function extractInfo(text: string) {
                           numericValue *= 1000;
                       } else if (["tr", "triệu", "m"].includes(unitLower)) {
                           numericValue *= 1000000;
+                      } else if (["tỉ", "b"].includes(unitLower)) {
+                        numericValue *= 1000000000;
                       }
                   }
                   amount = Math.floor(numericValue);
@@ -239,7 +212,7 @@ const UserInput: React.FC<{categories: SubCategory[], transactions: Transaction[
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState<string | null>(null);
   const [chose, setChose] = useState(false);
-  const [type, setType] = useState("Chi tiêu");
+  const [type, setType] = useState<TransactionType>("Chi tiêu");
   const [category, setCategory] = useState('Chưa rõ')
 
   const [popupData, setPopupData] = useState<{
@@ -247,25 +220,21 @@ const UserInput: React.FC<{categories: SubCategory[], transactions: Transaction[
     date: Date;
     description: string;
     category: string;
-    type: string;
+    type: TransactionType;
   } | null>(null);
 
   const handleChange = async () => {
-    if (!chose && text?.trim().length > 10) {
-      const res = await axios.post('http://localhost:5000/predict', {
-        description: text
-      }, {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      //console.log(res.data);
+    if (!chose && text?.trim().length > 3) {
+      const { type, name } = getCategory(text);
+      setCategory(name)
+      if (name === 'Chưa nhận diện') {
+        setValue(null)
+      } else {
+        setValue(name as string)
+      }
+      console.log(type, name);
       
-      const lst = res.data.prediction.split('@')
-      setCategory(lst[1].trim())
-      setValue(lst[1].trim())
-      setType(lst[0].trim() === 'expense' ? 'Chi tiêu' : 'Thu nhập')
+      setType(type)
     }
   }
 
@@ -287,6 +256,9 @@ const UserInput: React.FC<{categories: SubCategory[], transactions: Transaction[
     // console.log(new Date(date));
     const slt = (date as string).split('/')
 
+    console.log(type);
+    
+
     
 
     setPopupData({
@@ -294,11 +266,10 @@ const UserInput: React.FC<{categories: SubCategory[], transactions: Transaction[
       date: new Date(Number(slt[2]), Number(slt[0]) - 1, Number(slt[1])),
       description: input,
       category: chose ? value as string : category,
-      type: type,
+      type: chose ? typeMap[value as string] : type,
     });
 
     
-      
   };
 
   const handleConfirmPopup = async () => {
@@ -308,6 +279,7 @@ const UserInput: React.FC<{categories: SubCategory[], transactions: Transaction[
       toast.warning("Không thể xác định danh mục giao dịch hiện tại! Vui lòng chọn thủ công");
       return;
     }
+    
 
 
     const formData = {
@@ -330,11 +302,6 @@ const UserInput: React.FC<{categories: SubCategory[], transactions: Transaction[
       
       
       setTransData([...transactions, res.data])
-   
-
-      
-
-
       toast.success("Giao dịch thực hiện thành công!!")
       
     } catch (error) {
@@ -370,7 +337,7 @@ const UserInput: React.FC<{categories: SubCategory[], transactions: Transaction[
                 handleSubmit(e);
               }
             }}
-            placeholder="Nhập nội dung... Eg. 10/6 106k về quê"
+            placeholder="Nhập nội dung... Ví dụ: 10/6 106k về quê"
             style={{ fontSize: "1.5rem" }}
             className="w-full px-4 py-6 placeholder:text-2xl placeholder:text-gray-700 border-2 border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-500 transition-all pr-16"
           />
@@ -387,7 +354,7 @@ const UserInput: React.FC<{categories: SubCategory[], transactions: Transaction[
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button className="w-[200px]  justify-between border rounded-lg px-4 py-2 flex items-center">
-            <span className="text-black">{value ? value : "Select category"}</span>
+            <span className="text-black">{value ? value : "Danh mục"}</span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </button>
         </PopoverTrigger>
@@ -408,7 +375,7 @@ const UserInput: React.FC<{categories: SubCategory[], transactions: Transaction[
               </div>
             ))
           ) : (
-            <p>Loading categories...</p>
+            <p>Đang tải danh mục...</p>
           )}
         </PopoverContent>
       </Popover>

@@ -17,37 +17,37 @@ import { toast } from 'sonner';
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [transData, setTransData] = useState<Transaction[]>([])
+  const [timeframe, setTimeframe] = useState<Timeframe>("year")
+  const [selMonth, setSelMonth] = useState<number>(new Date().getMonth() + 1)
+  const [selYear, setSelYear] = useState<number>(new Date().getFullYear())
   // transactions latest, month, year
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/transaction?year=2025", { withCredentials: true });
-        const { difference, expense, income, transactions } = response.data
-        // for (let i = 0; i < transactions.length; i++) {
-        //   const date = new Date(transactions[i].datetime)
-        //   transactions[i].datetime = date.toLocaleString("default", { timeZone: "Asia/Ho_Chi_Minh" });
-        // }
-        // console.log(transactions);
-        
-        setTransData(transactions);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-        toast.error("Không thể tải giao dịch!");
+        let res
+        if (timeframe === 'month') {
+          res = await axios.get(`http://localhost:3000/transaction/allInMonth?month=${selMonth}&year=${selYear}`, { withCredentials: true })
+        } else {
+          // latest and year use full year endpoint
+          res = await axios.get(`http://localhost:3000/transaction?year=${selYear}`, { withCredentials: true })
+        }
+        setTransData(res.data.transactions)
+      } catch (err) {
+        toast.error('Không thể tải giao dịch!')
       }
-    };
-
-    fetchTransactions();
-  }, []);
-
-  useEffect(() => {
-    const isLoggedIn = sessionStorage.getItem("isLoggedIn") === "true";
-    if (isLoggedIn) {
-      setTimeout(() => {
-        setLoading(false)
-      }, 100)
-      
     }
-  }, []);
+    fetchTransactions()
+  }, [timeframe, selMonth, selYear])
+
+  // useEffect(() => {
+  //   const isLoggedIn = sessionStorage.getItem("isLoggedIn") === "true";
+  //   if (isLoggedIn) {
+  //     setTimeout(() => {
+  //       setLoading(false)
+  //     }, 100)
+      
+  //   }
+  // }, []);
 
   // categories
   const [categories, setCategories] = useState<SubCategory[]>([])
@@ -80,10 +80,10 @@ const Dashboard = () => {
   }, [parentCategories]);
   
   useEffect(() => {
-    if (sessionStorage.getItem("isLoggedIn") === "true" && transData.length > 0 && categories.length > 0) {
+    if (sessionStorage.getItem("isLoggedIn") === "true" && transData.length > 0 && categories.length > 0 && parentCategories.length > 0) {
       setLoading(false);
     }
-  }, [transData, categories]);
+  }, [transData, categories, parentCategories]);
 
   // useEffect(() => {
   //   console.log('change', transData);
@@ -107,6 +107,11 @@ const Dashboard = () => {
       // Lọc giao dịch theo timeframe nếu cần
       let filteredTransactions = transactions;
       
+      // console.log(transactions);
+      // console.log(timeframe)
+      
+      
+
       if (timeframe === "latest") {
           const today = new Date();
           const lastWeek = new Date();
@@ -119,17 +124,6 @@ const Dashboard = () => {
           });
   
           
-      }
-  
-      if (timeframe === "month") {
-          const today = new Date();
-          const currentMonth = today.getMonth();
-          const currentYear = today.getFullYear();
-  
-          filteredTransactions = transactions.filter((t) => {
-              const transDate = new Date(t.datetime);
-              return transDate.getMonth() === currentMonth && transDate.getFullYear() === currentYear;
-          });
       }
   
       // Gom nhóm theo danh mục (ăn uống, giải trí, ...)
@@ -267,6 +261,7 @@ const Dashboard = () => {
       };
 
 
+
   return (
     
     <div className='flex items-center justify-between w-screen min-h-screen 
@@ -276,11 +271,55 @@ const Dashboard = () => {
         <SideBar/>
       </div>
       <div className='flex flex-4 items-center justify-center flex-col w-[80%]'>
-        <div className='flex items-center justify-center p-10 gap-10'>
-          <BarCharts data={formattedBarData(transData, 'latest')} timeframe='latest'/>
-          <PieCharts data={formattedPieData(transData, 'latest')}/>
+        <div className='flex items-center justify-center p-10 gap-10 w-full'>
+          <BarCharts data={formattedBarData(transData, timeframe)} timeframe={timeframe} />
         </div>
-        <UserInput transactions={transData} setTransData={setTransData} categories={categories}/>
+
+        <div className='flex items-center justify-center w-full gap-0'>
+          <div className='flex items-center justify-center w-2/5 px-10'>
+            <PieCharts data={formattedPieData(transData, timeframe)}/>
+          </div>
+
+          <div className='flex flex-col items-center justify-center w-3/5 gap-10'>
+            <div className='flex flex-wrap items-center gap-6 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg'>
+              <label className='text-lg font-semibold text-gray-700 dark:text-gray-100'>Chọn thời gian:</label>
+              <select value={timeframe} onChange={e => setTimeframe(e.target.value as Timeframe)} className='text-lg px-4 py-2 rounded-xl bg-blue-50 dark:bg-gray-700 dark:text-white border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400'>
+                <option value='latest'>7 ngày gần nhất</option>
+                <option value='month'>Theo tháng</option>
+                <option value='year'>Theo năm</option>
+              </select>
+              {timeframe === 'month' && (
+                <>
+                  <select value={selMonth} onChange={e => setSelMonth(+e.target.value)} className='text-lg px-4 py-2 rounded-xl bg-blue-50 dark:bg-gray-700 dark:text-white border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400'>
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                  <select value={selYear} onChange={e => setSelYear(+e.target.value)} className='text-lg px-4 py-2 rounded-xl bg-blue-50 dark:bg-gray-700 dark:text-white border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400'>
+                    {[selYear - 1, selYear, selYear + 1].map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </>
+              )}
+              {timeframe === 'year' && (
+                <select value={selYear} onChange={e => setSelYear(+e.target.value)} className='text-lg px-4 py-2 rounded-xl bg-blue-50 dark:bg-gray-700 dark:text-white border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400'>
+                  {[selYear - 1, selYear, selYear + 1].map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+            <UserInput transactions={transData} setTransData={setTransData} categories={categories}/>
+          </div>
+
+        </div>
+
+
+
+
+        
+        
       </div>
     </div>
   )

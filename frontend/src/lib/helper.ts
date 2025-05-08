@@ -1,4 +1,4 @@
-import { Transaction } from "./types";
+import { Transaction, TransactionType } from "./types";
 
 export function getWeekRange(year: number, week: number) {
 	const d = new Date(year, 0, 4);
@@ -28,3 +28,21 @@ export const TRANSACTION_FIELDS: Record<string, keyof Transaction> = {
 	"Type": "type",
 	"Amount": "money",
   };
+
+export const typeMap: Record<string, TransactionType> = {
+  "Ăn uống": "Chi tiêu",
+  "Chợ - Siêu thị": "Chi tiêu",
+  "Hóa đơn": "Chi tiêu",
+  "Tiền thuê nhà": "Chi tiêu",
+  "Mua sắm": "Chi tiêu",
+  "Sức khỏe": "Chi tiêu",
+  "Làm đẹp": "Chi tiêu",
+  "Giải trí": "Chi tiêu",
+  "Di chuyển": "Chi tiêu",
+  "Lương": "Thu nhập",
+  "Thưởng": "Thu nhập",
+  "Trợ cấp": "Thu nhập",
+  "Thu hồi nợ": "Thu nhập",
+  "Kinh doanh": "Thu nhập",
+  "Chưa rõ": "Chi tiêu"
+};

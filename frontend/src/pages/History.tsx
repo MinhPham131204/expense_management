@@ -1,21 +1,20 @@
 import TransactionTable from '../components/TransactionTable';
 import SideBar from '../components/Sidebar';
-import { Period, Timeframe } from '@/lib/types';
+// import { Period, Timeframe } from '@/lib/types';
 import "./pages.css"; 
 import { useEffect, useState } from 'react';
 
 
-interface Props { 
-  period: Period; 
-  setPeriod: (period: Period) => void; 
-  timeframe: Timeframe; 
-  setTimeframe: (timeframe: Timeframe) => void;
-}
+// interface Props { 
+//   period: Period; 
+//   setPeriod: (period: Period) => void; 
+//   timeframe: Timeframe; 
+//   setTimeframe: (timeframe: Timeframe) => void;
+// }
 
 
 
 const History = () => {
-  const timeframe: Timeframe = 'month'
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,7 +26,7 @@ const History = () => {
 
   setTimeout(() => {
     setLoading(false)
-  }, 100)
+  }, 1000)
 
   if (loading) {
     return (
@@ -41,14 +40,14 @@ const History = () => {
   }
   
   return (
-    <div className="flex flex-row items-center justify-evenly w-screen min-h-screen 
+    <div className="flex flex-row items-center justify-evenly w-screen min-h-screen
       bg-gradient-to-bl from-blue-200 to-slate-200 dark:from-gray-900 dark:to-gray-700">
 
       <div className='flex-1'>
         <SideBar/>
       </div>
-      <div className="flex-4">
-        <TransactionTable timeframe={timeframe} />
+      <div className="flex-4 h-full">
+        <TransactionTable  />
       </div>
     </div>
   )
