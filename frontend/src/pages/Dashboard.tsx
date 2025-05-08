@@ -323,6 +323,7 @@ useEffect(() => {
 
 
 
+
   return (
     
     <div className='flex items-center justify-between w-screen min-h-screen 
@@ -372,12 +373,14 @@ useEffect(() => {
         <SideBar/>
       </div>
       <div className='flex flex-4 items-center justify-center flex-col w-[80%] h-screen gap-4'>
+
         <div className='flex items-center justify-center p-10 gap-10 w-full'>
           <BarCharts data={formattedBarData(transData, timeframe)} timeframe={timeframe} />
         </div>
 
         <div className='flex items-center justify-center w-full gap-0'>
           <div className='flex items-center justify-center w-2/3 h-4/6 px-10'>
+
             <PieCharts data={formattedPieData(transData, timeframe)}/>
           </div>
 

@@ -158,6 +158,7 @@ export const PieCharts: React.FC<{ data: PieChartsProps[]  }> = ({data}) => {
 
     return (
         <div className="w-full flex flex-col items-center gap-4 justify-center p-4 bg-white shadow-lg rounded-lg">
+
             <h3 className="text-2xl font-semibold text-gray-700 mb-2">📊 Phân bổ thu nhập & chi tiêu</h3>
             
             <ResponsiveContainer width="100%" height={360}>
